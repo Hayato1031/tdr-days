@@ -1,0 +1,829 @@
+// Revolutionary Design Styles - Material Design & Neumorphism
+// A genius-level design system that pushes boundaries with style mixing utilities
+
+import { Platform } from 'react-native';
+import { ThemeMode } from './theme';
+
+// Design style types
+export type DesignStyle = 'material' | 'neumorphism' | 'glassmorphism' | 'futuristic';
+
+// Animation speed preferences
+export type AnimationSpeed = 'instant' | 'fast' | 'normal' | 'slow' | 'cinematic';
+
+// Border radius preferences
+export type BorderRadiusPreference = 'sharp' | 'subtle' | 'rounded' | 'pill';
+
+// Shadow intensity levels
+export type ShadowIntensity = 'none' | 'subtle' | 'normal' | 'dramatic' | 'extreme';
+
+// Accent color system
+export interface AccentColors {
+  primary: string;
+  secondary: string;
+  tertiary: string;
+  gradient: string[];
+}
+
+// Design style configuration
+export interface DesignStyleConfig {
+  shadows: {
+    sm: any;
+    md: any;
+    lg: any;
+    xl: any;
+    inner: any;
+    button: any;
+    card: any;
+    modal: any;
+  };
+  surfaces: {
+    primary: any;
+    secondary: any;
+    elevated: any;
+    overlay: any;
+    interactive: any;
+  };
+  borders: {
+    default: any;
+    subtle: any;
+    prominent: any;
+  };
+  animations: {
+    duration: {
+      instant: number;
+      fast: number;
+      normal: number;
+      slow: number;
+      cinematic: number;
+    };
+    spring: {
+      damping: number;
+      stiffness: number;
+      mass: number;
+    };
+  };
+  effects: {
+    blur: number;
+    opacity: number;
+    scale: number;
+  };
+}
+
+// Material Design style definitions
+export const materialDesignStyle: DesignStyleConfig = {
+  shadows: {
+    sm: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.18,
+      shadowRadius: 1.0,
+      elevation: 1,
+    },
+    md: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.20,
+      shadowRadius: 2.2,
+      elevation: 3,
+    },
+    lg: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.25,
+      shadowRadius: 4.65,
+      elevation: 8,
+    },
+    xl: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.30,
+      shadowRadius: 8.5,
+      elevation: 16,
+    },
+    inner: {
+      shadowColor: 'transparent',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0,
+      shadowRadius: 0,
+      elevation: 0,
+    },
+    button: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.22,
+      shadowRadius: 3.5,
+      elevation: 6,
+    },
+    card: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+    modal: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.35,
+      shadowRadius: 12.5,
+      elevation: 24,
+    },
+  },
+  surfaces: {
+    primary: {
+      backgroundColor: 'transparent',
+    },
+    secondary: {
+      backgroundColor: 'transparent',
+    },
+    elevated: {
+      backgroundColor: 'transparent',
+    },
+    overlay: {
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    interactive: {
+      backgroundColor: 'transparent',
+    },
+  },
+  borders: {
+    default: {
+      borderWidth: 0,
+      borderColor: 'transparent',
+    },
+    subtle: {
+      borderWidth: 1,
+      borderColor: 'rgba(0, 0, 0, 0.05)',
+    },
+    prominent: {
+      borderWidth: 1,
+      borderColor: 'rgba(0, 0, 0, 0.1)',
+    },
+  },
+  animations: {
+    duration: {
+      instant: 0,
+      fast: 150,
+      normal: 300,
+      slow: 500,
+      cinematic: 1000,
+    },
+    spring: {
+      damping: 15,
+      stiffness: 100,
+      mass: 1,
+    },
+  },
+  effects: {
+    blur: 0,
+    opacity: 1,
+    scale: 1,
+  },
+};
+
+// Neumorphism style definitions
+export const neumorphismStyle: DesignStyleConfig = {
+  shadows: {
+    sm: {
+      shadowColor: '#000',
+      shadowOffset: { width: 3, height: 3 },
+      shadowOpacity: 0.15,
+      shadowRadius: 6,
+      elevation: 0,
+    },
+    md: {
+      shadowColor: '#000',
+      shadowOffset: { width: 6, height: 6 },
+      shadowOpacity: 0.15,
+      shadowRadius: 12,
+      elevation: 0,
+    },
+    lg: {
+      shadowColor: '#000',
+      shadowOffset: { width: 9, height: 9 },
+      shadowOpacity: 0.2,
+      shadowRadius: 18,
+      elevation: 0,
+    },
+    xl: {
+      shadowColor: '#000',
+      shadowOffset: { width: 12, height: 12 },
+      shadowOpacity: 0.25,
+      shadowRadius: 24,
+      elevation: 0,
+    },
+    inner: {
+      shadowColor: '#000',
+      shadowOffset: { width: -3, height: -3 },
+      shadowOpacity: 0.1,
+      shadowRadius: 6,
+      elevation: 0,
+    },
+    button: {
+      shadowColor: '#000',
+      shadowOffset: { width: 5, height: 5 },
+      shadowOpacity: 0.15,
+      shadowRadius: 10,
+      elevation: 0,
+    },
+    card: {
+      shadowColor: '#000',
+      shadowOffset: { width: 8, height: 8 },
+      shadowOpacity: 0.15,
+      shadowRadius: 16,
+      elevation: 0,
+    },
+    modal: {
+      shadowColor: '#000',
+      shadowOffset: { width: 15, height: 15 },
+      shadowOpacity: 0.3,
+      shadowRadius: 30,
+      elevation: 0,
+    },
+  },
+  surfaces: {
+    primary: {
+      backgroundColor: 'transparent',
+    },
+    secondary: {
+      backgroundColor: 'transparent',
+    },
+    elevated: {
+      backgroundColor: 'transparent',
+    },
+    overlay: {
+      backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    },
+    interactive: {
+      backgroundColor: 'transparent',
+    },
+  },
+  borders: {
+    default: {
+      borderWidth: 0,
+      borderColor: 'transparent',
+    },
+    subtle: {
+      borderWidth: 0,
+      borderColor: 'transparent',
+    },
+    prominent: {
+      borderWidth: 0,
+      borderColor: 'transparent',
+    },
+  },
+  animations: {
+    duration: {
+      instant: 0,
+      fast: 200,
+      normal: 400,
+      slow: 600,
+      cinematic: 1200,
+    },
+    spring: {
+      damping: 20,
+      stiffness: 80,
+      mass: 1.2,
+    },
+  },
+  effects: {
+    blur: 5,
+    opacity: 0.95,
+    scale: 0.98,
+  },
+};
+
+// Glassmorphism style definitions
+export const glassmorphismStyle: DesignStyleConfig = {
+  shadows: {
+    sm: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    md: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.15,
+      shadowRadius: 16,
+      elevation: 4,
+    },
+    lg: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.2,
+      shadowRadius: 24,
+      elevation: 8,
+    },
+    xl: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 20 },
+      shadowOpacity: 0.25,
+      shadowRadius: 32,
+      elevation: 16,
+    },
+    inner: {
+      shadowColor: 'transparent',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0,
+      shadowRadius: 0,
+      elevation: 0,
+    },
+    button: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.12,
+      shadowRadius: 12,
+      elevation: 4,
+    },
+    card: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.15,
+      shadowRadius: 20,
+      elevation: 6,
+    },
+    modal: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 24 },
+      shadowOpacity: 0.3,
+      shadowRadius: 40,
+      elevation: 24,
+    },
+  },
+  surfaces: {
+    primary: {
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      backdropFilter: 'blur(10px)',
+    },
+    secondary: {
+      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+      backdropFilter: 'blur(8px)',
+    },
+    elevated: {
+      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+      backdropFilter: 'blur(12px)',
+    },
+    overlay: {
+      backgroundColor: 'rgba(0, 0, 0, 0.2)',
+      backdropFilter: 'blur(20px)',
+    },
+    interactive: {
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+      backdropFilter: 'blur(6px)',
+    },
+  },
+  borders: {
+    default: {
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 0.18)',
+    },
+    subtle: {
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    prominent: {
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 0.3)',
+    },
+  },
+  animations: {
+    duration: {
+      instant: 0,
+      fast: 180,
+      normal: 350,
+      slow: 550,
+      cinematic: 1100,
+    },
+    spring: {
+      damping: 18,
+      stiffness: 90,
+      mass: 1.1,
+    },
+  },
+  effects: {
+    blur: 20,
+    opacity: 0.8,
+    scale: 1,
+  },
+};
+
+// Futuristic style definitions
+export const futuristicStyle: DesignStyleConfig = {
+  shadows: {
+    sm: {
+      shadowColor: '#a855f7',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.3,
+      shadowRadius: 10,
+      elevation: 0,
+    },
+    md: {
+      shadowColor: '#a855f7',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.4,
+      shadowRadius: 20,
+      elevation: 0,
+    },
+    lg: {
+      shadowColor: '#a855f7',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.5,
+      shadowRadius: 30,
+      elevation: 0,
+    },
+    xl: {
+      shadowColor: '#a855f7',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.6,
+      shadowRadius: 40,
+      elevation: 0,
+    },
+    inner: {
+      shadowColor: '#a855f7',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.2,
+      shadowRadius: 15,
+      elevation: 0,
+    },
+    button: {
+      shadowColor: '#a855f7',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.5,
+      shadowRadius: 15,
+      elevation: 0,
+    },
+    card: {
+      shadowColor: '#a855f7',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.4,
+      shadowRadius: 25,
+      elevation: 0,
+    },
+    modal: {
+      shadowColor: '#a855f7',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.7,
+      shadowRadius: 50,
+      elevation: 0,
+    },
+  },
+  surfaces: {
+    primary: {
+      backgroundColor: 'rgba(168, 85, 247, 0.05)',
+      borderWidth: 1,
+      borderColor: 'rgba(168, 85, 247, 0.2)',
+    },
+    secondary: {
+      backgroundColor: 'rgba(168, 85, 247, 0.02)',
+      borderWidth: 1,
+      borderColor: 'rgba(168, 85, 247, 0.15)',
+    },
+    elevated: {
+      backgroundColor: 'rgba(168, 85, 247, 0.08)',
+      borderWidth: 1,
+      borderColor: 'rgba(168, 85, 247, 0.3)',
+    },
+    overlay: {
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+      borderWidth: 1,
+      borderColor: 'rgba(168, 85, 247, 0.4)',
+    },
+    interactive: {
+      backgroundColor: 'rgba(168, 85, 247, 0.03)',
+      borderWidth: 1,
+      borderColor: 'rgba(168, 85, 247, 0.25)',
+    },
+  },
+  borders: {
+    default: {
+      borderWidth: 1,
+      borderColor: 'rgba(168, 85, 247, 0.3)',
+    },
+    subtle: {
+      borderWidth: 1,
+      borderColor: 'rgba(168, 85, 247, 0.2)',
+    },
+    prominent: {
+      borderWidth: 2,
+      borderColor: 'rgba(168, 85, 247, 0.5)',
+    },
+  },
+  animations: {
+    duration: {
+      instant: 0,
+      fast: 100,
+      normal: 250,
+      slow: 450,
+      cinematic: 900,
+    },
+    spring: {
+      damping: 12,
+      stiffness: 120,
+      mass: 0.8,
+    },
+  },
+  effects: {
+    blur: 0,
+    opacity: 0.95,
+    scale: 1.02,
+  },
+};
+
+// Get design style configuration
+export const getDesignStyle = (style: DesignStyle): DesignStyleConfig => {
+  switch (style) {
+    case 'material':
+      return materialDesignStyle;
+    case 'neumorphism':
+      return neumorphismStyle;
+    case 'glassmorphism':
+      return glassmorphismStyle;
+    case 'futuristic':
+      return futuristicStyle;
+    default:
+      return materialDesignStyle;
+  }
+};
+
+// Style mixing utilities
+export const mixStyles = (
+  primary: DesignStyleConfig,
+  secondary: DesignStyleConfig,
+  ratio: number = 0.5
+): DesignStyleConfig => {
+  const primaryWeight = 1 - ratio;
+  const secondaryWeight = ratio;
+
+  return {
+    shadows: {
+      sm: mixShadow(primary.shadows.sm, secondary.shadows.sm, ratio),
+      md: mixShadow(primary.shadows.md, secondary.shadows.md, ratio),
+      lg: mixShadow(primary.shadows.lg, secondary.shadows.lg, ratio),
+      xl: mixShadow(primary.shadows.xl, secondary.shadows.xl, ratio),
+      inner: mixShadow(primary.shadows.inner, secondary.shadows.inner, ratio),
+      button: mixShadow(primary.shadows.button, secondary.shadows.button, ratio),
+      card: mixShadow(primary.shadows.card, secondary.shadows.card, ratio),
+      modal: mixShadow(primary.shadows.modal, secondary.shadows.modal, ratio),
+    },
+    surfaces: {
+      primary: mixSurface(primary.surfaces.primary, secondary.surfaces.primary, ratio),
+      secondary: mixSurface(primary.surfaces.secondary, secondary.surfaces.secondary, ratio),
+      elevated: mixSurface(primary.surfaces.elevated, secondary.surfaces.elevated, ratio),
+      overlay: mixSurface(primary.surfaces.overlay, secondary.surfaces.overlay, ratio),
+      interactive: mixSurface(primary.surfaces.interactive, secondary.surfaces.interactive, ratio),
+    },
+    borders: {
+      default: mixBorder(primary.borders.default, secondary.borders.default, ratio),
+      subtle: mixBorder(primary.borders.subtle, secondary.borders.subtle, ratio),
+      prominent: mixBorder(primary.borders.prominent, secondary.borders.prominent, ratio),
+    },
+    animations: {
+      duration: {
+        instant: 0,
+        fast: Math.round(primary.animations.duration.fast * primaryWeight + secondary.animations.duration.fast * secondaryWeight),
+        normal: Math.round(primary.animations.duration.normal * primaryWeight + secondary.animations.duration.normal * secondaryWeight),
+        slow: Math.round(primary.animations.duration.slow * primaryWeight + secondary.animations.duration.slow * secondaryWeight),
+        cinematic: Math.round(primary.animations.duration.cinematic * primaryWeight + secondary.animations.duration.cinematic * secondaryWeight),
+      },
+      spring: {
+        damping: primary.animations.spring.damping * primaryWeight + secondary.animations.spring.damping * secondaryWeight,
+        stiffness: primary.animations.spring.stiffness * primaryWeight + secondary.animations.spring.stiffness * secondaryWeight,
+        mass: primary.animations.spring.mass * primaryWeight + secondary.animations.spring.mass * secondaryWeight,
+      },
+    },
+    effects: {
+      blur: primary.effects.blur * primaryWeight + secondary.effects.blur * secondaryWeight,
+      opacity: primary.effects.opacity * primaryWeight + secondary.effects.opacity * secondaryWeight,
+      scale: primary.effects.scale * primaryWeight + secondary.effects.scale * secondaryWeight,
+    },
+  };
+};
+
+// Helper function to mix shadows
+const mixShadow = (shadow1: any, shadow2: any, ratio: number): any => {
+  if (!shadow1 || !shadow2) return shadow1 || shadow2;
+  
+  const weight1 = 1 - ratio;
+  const weight2 = ratio;
+  
+  return {
+    shadowColor: shadow1.shadowColor, // Keep primary color for now
+    shadowOffset: {
+      width: shadow1.shadowOffset.width * weight1 + shadow2.shadowOffset.width * weight2,
+      height: shadow1.shadowOffset.height * weight1 + shadow2.shadowOffset.height * weight2,
+    },
+    shadowOpacity: shadow1.shadowOpacity * weight1 + shadow2.shadowOpacity * weight2,
+    shadowRadius: shadow1.shadowRadius * weight1 + shadow2.shadowRadius * weight2,
+    elevation: Math.round((shadow1.elevation || 0) * weight1 + (shadow2.elevation || 0) * weight2),
+  };
+};
+
+// Helper function to mix surfaces
+const mixSurface = (surface1: any, surface2: any, ratio: number): any => {
+  if (!surface1 || !surface2) return surface1 || surface2;
+  
+  return {
+    ...surface1,
+    ...surface2,
+    // Mix specific properties if they exist
+    opacity: surface1.opacity !== undefined && surface2.opacity !== undefined
+      ? surface1.opacity * (1 - ratio) + surface2.opacity * ratio
+      : surface1.opacity || surface2.opacity,
+  };
+};
+
+// Helper function to mix borders
+const mixBorder = (border1: any, border2: any, ratio: number): any => {
+  if (!border1 || !border2) return border1 || border2;
+  
+  const weight1 = 1 - ratio;
+  const weight2 = ratio;
+  
+  return {
+    borderWidth: border1.borderWidth * weight1 + border2.borderWidth * weight2,
+    borderColor: border1.borderColor, // Keep primary color for now
+  };
+};
+
+// Border radius configurations
+export const borderRadiusConfigs = {
+  sharp: {
+    none: 0,
+    sm: 2,
+    base: 4,
+    md: 6,
+    lg: 8,
+    xl: 12,
+    '2xl': 16,
+    '3xl': 20,
+    '4xl': 24,
+    full: 9999,
+  },
+  subtle: {
+    none: 0,
+    sm: 4,
+    base: 8,
+    md: 12,
+    lg: 16,
+    xl: 20,
+    '2xl': 24,
+    '3xl': 32,
+    '4xl': 40,
+    full: 9999,
+  },
+  rounded: {
+    none: 0,
+    sm: 6,
+    base: 12,
+    md: 16,
+    lg: 20,
+    xl: 24,
+    '2xl': 32,
+    '3xl': 40,
+    '4xl': 48,
+    full: 9999,
+  },
+  pill: {
+    none: 0,
+    sm: 12,
+    base: 16,
+    md: 20,
+    lg: 24,
+    xl: 32,
+    '2xl': 40,
+    '3xl': 48,
+    '4xl': 56,
+    full: 9999,
+  },
+};
+
+// Shadow intensity configurations
+export const shadowIntensityConfigs = {
+  none: {
+    multiplier: 0,
+  },
+  subtle: {
+    multiplier: 0.5,
+  },
+  normal: {
+    multiplier: 1,
+  },
+  dramatic: {
+    multiplier: 1.5,
+  },
+  extreme: {
+    multiplier: 2,
+  },
+};
+
+// Apply shadow intensity
+export const applyShadowIntensity = (shadow: any, intensity: ShadowIntensity): any => {
+  const config = shadowIntensityConfigs[intensity];
+  
+  if (config.multiplier === 0) {
+    return {
+      shadowColor: 'transparent',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0,
+      shadowRadius: 0,
+      elevation: 0,
+    };
+  }
+  
+  return {
+    ...shadow,
+    shadowOpacity: Math.min(shadow.shadowOpacity * config.multiplier, 1),
+    shadowRadius: shadow.shadowRadius * config.multiplier,
+    elevation: Math.round((shadow.elevation || 0) * config.multiplier),
+  };
+};
+
+// Animation speed configurations
+export const getAnimationDuration = (
+  speed: AnimationSpeed,
+  baseConfig: DesignStyleConfig['animations']['duration']
+): DesignStyleConfig['animations']['duration'] => {
+  const speedMultipliers = {
+    instant: 0,
+    fast: 0.5,
+    normal: 1,
+    slow: 1.5,
+    cinematic: 2,
+  };
+  
+  const multiplier = speedMultipliers[speed];
+  
+  return {
+    instant: 0,
+    fast: Math.round(baseConfig.fast * multiplier),
+    normal: Math.round(baseConfig.normal * multiplier),
+    slow: Math.round(baseConfig.slow * multiplier),
+    cinematic: Math.round(baseConfig.cinematic * multiplier),
+  };
+};
+
+// Dynamic accent color generator
+export const generateAccentColors = (baseColor: string): AccentColors => {
+  // This is a simplified version - in a real app, you'd use a color manipulation library
+  return {
+    primary: baseColor,
+    secondary: baseColor + '99', // 60% opacity
+    tertiary: baseColor + '66', // 40% opacity
+    gradient: [
+      baseColor,
+      adjustColor(baseColor, 0.2), // Lighter
+      adjustColor(baseColor, -0.2), // Darker
+    ],
+  };
+};
+
+// Helper function to adjust color brightness
+const adjustColor = (color: string, amount: number): string => {
+  // This is a placeholder - in a real app, you'd use a proper color manipulation library
+  return color;
+};
+
+// Create a complete theme configuration
+export const createThemeConfig = (
+  mode: ThemeMode,
+  designStyle: DesignStyle,
+  accentColor: string,
+  animationSpeed: AnimationSpeed,
+  borderRadius: BorderRadiusPreference,
+  shadowIntensity: ShadowIntensity
+) => {
+  const baseStyle = getDesignStyle(designStyle);
+  const accentColors = generateAccentColors(accentColor);
+  const borderRadiusConfig = borderRadiusConfigs[borderRadius];
+  
+  return {
+    mode,
+    designStyle,
+    accentColors,
+    animationSpeed,
+    borderRadius: borderRadiusConfig,
+    shadowIntensity,
+    style: {
+      ...baseStyle,
+      animations: {
+        ...baseStyle.animations,
+        duration: getAnimationDuration(animationSpeed, baseStyle.animations.duration),
+      },
+    },
+  };
+};
+
+// Export all configurations
+export default {
+  getDesignStyle,
+  mixStyles,
+  borderRadiusConfigs,
+  shadowIntensityConfigs,
+  applyShadowIntensity,
+  getAnimationDuration,
+  generateAccentColors,
+  createThemeConfig,
+};
