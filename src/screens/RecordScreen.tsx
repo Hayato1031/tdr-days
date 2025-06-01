@@ -17,6 +17,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { colors } from '../styles/colors';
+import { Header } from '../components/Header';
+import { SwipeableScreen } from '../components/SwipeableScreen';
+import { DrawerMenu } from '../components/DrawerMenu';
 // Removed unused imports - now using responsive utilities directly
 import { CalendarPicker } from '../components/CalendarPicker';
 import { ParkSelector } from '../components/ParkSelector';
@@ -77,6 +80,7 @@ export const RecordScreen = () => {
   const [selectedWeather, setSelectedWeather] = useState<WeatherType | undefined>();
   const [notes, setNotes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   // Animation refs
   const saveButtonScale = useRef(new Animated.Value(1)).current;
@@ -182,11 +186,16 @@ export const RecordScreen = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
+    <SwipeableScreen onSwipeFromLeft={() => setMenuVisible(true)}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <Header 
+          title={t('nav.record')} 
+          onMenuOpen={() => setMenuVisible(true)}
+        />
+        <ScrollView
         style={[styles.container, { backgroundColor: theme.colors.background.primary }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -524,7 +533,13 @@ export const RecordScreen = () => {
           <View style={{ height: 100 }} />
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+      
+      <DrawerMenu
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+      />
+    </SwipeableScreen>
   );
 };
 

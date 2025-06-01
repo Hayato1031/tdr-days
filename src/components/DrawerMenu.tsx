@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { colors } from '../styles/colors';
@@ -39,6 +40,7 @@ interface MenuItem {
 }
 
 export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
+  const navigation = useNavigation();
   const { theme, themeConfig, toggleTheme } = useTheme();
   const { t, language, setLanguage } = useLanguage();
   const { rSpacing, rFontSize } = useResponsive();
@@ -55,8 +57,19 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
       color: colors.purple.bright,
       description: 'メインダッシュボード',
       onPress: () => {
-        // Navigation to Home
         onClose();
+        navigation.navigate('Main' as never, { screen: 'Home' } as never);
+      }
+    },
+    {
+      id: 'visitList',
+      title: '来園記録',
+      icon: 'list',
+      color: colors.purple[500],
+      description: '過去の来園記録を表示',
+      onPress: () => {
+        onClose();
+        navigation.navigate('VisitList' as never);
       }
     },
     {
@@ -66,8 +79,8 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
       color: colors.green[500],
       description: '新しい来園を記録',
       onPress: () => {
-        // Navigation to Record
         onClose();
+        navigation.navigate('Main' as never, { screen: 'Record' } as never);
       }
     },
     {
@@ -77,8 +90,8 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
       color: colors.blue[500],
       description: 'データ分析と統計',
       onPress: () => {
-        // Navigation to Analytics
         onClose();
+        navigation.navigate('Main' as never, { screen: 'Analytics' } as never);
       }
     },
     {
@@ -88,8 +101,8 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
       color: colors.orange[500],
       description: 'プロフィールと設定',
       onPress: () => {
-        // Navigation to Profile
         onClose();
+        navigation.navigate('Main' as never, { screen: 'Profile' } as never);
       }
     },
   ];
@@ -103,8 +116,8 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
       color: colors.pink[500],
       description: '来園記録を追加',
       onPress: () => {
-        // Quick record for Disneyland
         onClose();
+        navigation.navigate('Main' as never, { screen: 'Record' } as never);
       }
     },
     {
@@ -115,23 +128,27 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
       color: colors.teal[500],
       description: '来園記録を追加',
       onPress: () => {
-        // Quick record for DisneySea
         onClose();
+        navigation.navigate('Main' as never, { screen: 'Record' } as never);
       }
     },
   ];
 
   useEffect(() => {
     if (visible) {
+      // 開くときは完全に左側から開始
+      slideAnim.setValue(-screenWidth);
+      fadeAnim.setValue(0);
+      
       Animated.parallel([
         Animated.timing(slideAnim, {
           toValue: 0,
-          duration: 300,
+          duration: 280,
           useNativeDriver: true,
         }),
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 300,
+          duration: 280,
           useNativeDriver: true,
         }),
       ]).start();
@@ -139,12 +156,12 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
       Animated.parallel([
         Animated.timing(slideAnim, {
           toValue: -screenWidth,
-          duration: 250,
+          duration: 220,
           useNativeDriver: true,
         }),
         Animated.timing(fadeAnim, {
           toValue: 0,
-          duration: 250,
+          duration: 220,
           useNativeDriver: true,
         }),
       ]).start();
@@ -155,6 +172,7 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
     const newLanguage = language === 'ja' ? 'en' : 'ja';
     setLanguage(newLanguage);
   };
+
 
   return (
     <Modal
@@ -184,28 +202,28 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
         style={[
           styles.drawer,
           {
-            transform: [{ translateX: slideAnim }],
+            transform: [
+              { translateX: slideAnim },
+            ],
+            opacity: fadeAnim,
           },
         ]}
       >
-        <LinearGradient
-          colors={[colors.background.primary, colors.background.gradientPurple]}
-          style={styles.drawerGradient}
-        >
+          <LinearGradient
+            colors={['#ffffff', '#faf8ff']}
+            style={styles.drawerGradient}
+          >
           {/* Header */}
           <View style={styles.drawerHeader}>
             <View style={styles.appInfo}>
-              <View style={[styles.appIcon, { backgroundColor: themeConfig.accentColor }]}>
-                <Ionicons name="castle" size={24} color={colors.utility.white} />
+              <View style={[styles.appIcon, { backgroundColor: colors.purple[500] }]}>
+                <Ionicons name="castle" size={28} color={colors.utility.white} />
               </View>
               <View style={styles.appText}>
                 <Text style={styles.appTitle}>TDR Days</Text>
                 <Text style={styles.appSubtitle}>ディズニー来園記録</Text>
               </View>
             </View>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Ionicons name="close" size={24} color={colors.text.primary} />
-            </TouchableOpacity>
           </View>
 
           <ScrollView
@@ -268,27 +286,6 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>設定</Text>
               
-              {/* Theme Toggle */}
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={toggleTheme}
-                activeOpacity={0.7}
-              >
-                <View style={[styles.menuIcon, { backgroundColor: colors.purple.bright + '15' }]}>
-                  <Ionicons 
-                    name={theme.mode === 'dark' ? 'sunny' : 'moon'} 
-                    size={20} 
-                    color={colors.purple.bright} 
-                  />
-                </View>
-                <View style={styles.menuContent}>
-                  <Text style={styles.menuTitle}>
-                    {theme.mode === 'dark' ? 'ライトモード' : 'ダークモード'}
-                  </Text>
-                  <Text style={styles.menuDescription}>テーマを切り替え</Text>
-                </View>
-              </TouchableOpacity>
-
               {/* Language Toggle */}
               <TouchableOpacity
                 style={styles.menuItem}
@@ -310,7 +307,7 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
             {/* Bottom Spacing */}
             <View style={{ height: 100 }} />
           </ScrollView>
-        </LinearGradient>
+          </LinearGradient>
       </Animated.View>
     </Modal>
   );
@@ -340,45 +337,42 @@ const styles = StyleSheet.create({
   drawerHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: 20,
+    paddingBottom: 24,
     borderBottomWidth: 1,
-    borderBottomColor: colors.utility.borderLight,
+    borderBottomColor: 'rgba(168, 85, 247, 0.1)',
   },
   appInfo: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   appIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: 52,
+    height: 52,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 16,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   appText: {
     flex: 1,
   },
   appTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
-    color: colors.text.primary,
-    marginBottom: 2,
+    color: colors.gray[800],
+    marginBottom: 4,
   },
   appSubtitle: {
-    fontSize: 13,
-    color: colors.text.secondary,
-  },
-  closeButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.background.tertiary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    fontSize: 14,
+    color: colors.gray[600],
+    fontWeight: '500',
   },
   scrollView: {
     flex: 1,
@@ -390,7 +384,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.text.secondary,
+    color: colors.gray[600],
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 12,
@@ -402,8 +396,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 12,
     marginBottom: 4,
-    backgroundColor: colors.background.card,
-    shadowColor: colors.effects.shadowSoft,
+    backgroundColor: '#ffffff',
+    shadowColor: 'rgba(0, 0, 0, 0.1)',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 1,
     shadowRadius: 2,
@@ -423,12 +417,12 @@ const styles = StyleSheet.create({
   menuTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: colors.text.primary,
+    color: colors.gray[800],
     marginBottom: 2,
   },
   menuDescription: {
     fontSize: 12,
-    color: colors.text.secondary,
+    color: colors.gray[600],
   },
 });
 

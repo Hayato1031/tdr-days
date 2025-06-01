@@ -3,3 +3,5 @@ export { HomeScreen } from './HomeScreen';
 export { RecordScreen } from './RecordScreen';
 export { AnalyticsScreen } from './AnalyticsScreen';
 export { ProfileScreen } from './ProfileScreen';
+export { default as VisitListScreen } from './VisitListScreen';
+export { default as VisitDetailScreen } from './VisitDetailScreen';

@@ -14,6 +14,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { colors } from '../styles/colors';
+import { Header } from '../components/Header';
+import { SwipeableScreen } from '../components/SwipeableScreen';
+import { DrawerMenu } from '../components/DrawerMenu';
 import { useVisits } from '../hooks/useVisits';
 import { useActions } from '../hooks/useActions';
 import { useResponsive, useColumns } from '../hooks/useResponsive';
@@ -135,6 +138,7 @@ export const AnalyticsScreen = () => {
   });
   const [selectedChart, setSelectedChart] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   // Responsive states
   const isTabletOrLarger = isBreakpoint('tablet');
@@ -827,10 +831,15 @@ export const AnalyticsScreen = () => {
   }
 
   return (
-    <ResponsiveContainer
-      padding={false}
-      style={styles.container}
-    >
+    <SwipeableScreen onSwipeFromLeft={() => setMenuVisible(true)}>
+      <ResponsiveContainer
+        padding={false}
+        style={styles.container}
+      >
+        <Header 
+          title={t('nav.analytics')} 
+          onMenuOpen={() => setMenuVisible(true)}
+        />
       {/* Clean Header */}
       <View style={[
         styles.header,
@@ -1062,7 +1071,13 @@ export const AnalyticsScreen = () => {
 
       {/* Bottom spacing */}
       <View style={{ height: rSpacing(100) }} />
-    </ResponsiveContainer>
+      </ResponsiveContainer>
+      
+      <DrawerMenu
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+      />
+    </SwipeableScreen>
   );
 };
 

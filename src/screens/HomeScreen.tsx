@@ -26,6 +26,9 @@ import { useVisits } from '../hooks/useVisits';
 import { useActions } from '../hooks/useActions';
 import { useResponsive, useColumns } from '../hooks/useResponsive';
 import { colors } from '../styles/colors';
+import { Header } from '../components/Header';
+import { SwipeableScreen } from '../components/SwipeableScreen';
+import { DrawerMenu } from '../components/DrawerMenu';
 import { VisitCard } from '../components/VisitCard';
 import { ActionModal } from '../components/ActionModal';
 import { VisitFilter } from '../components/VisitFilter';
@@ -238,6 +241,7 @@ export const HomeScreen = () => {
   const { theme } = useTheme();
   const { t } = useLanguage();
   const isDark = theme?.mode === 'dark';
+  const [menuVisible, setMenuVisible] = useState(false);
   const responsive = useResponsive();
   const { 
     dimensions, 
@@ -336,12 +340,17 @@ export const HomeScreen = () => {
   }, [refreshVisits, refreshActions]);
 
   return (
-    <ResponsiveContainer
-      scroll={false}
-      padding={false}
-      style={[styles.container, { backgroundColor: theme?.colors?.background?.primary || '#fff' }]}
-    >
-      <ScrollView
+    <SwipeableScreen onSwipeFromLeft={() => setMenuVisible(true)}>
+      <ResponsiveContainer
+        scroll={false}
+        padding={false}
+        style={[styles.container, { backgroundColor: theme?.colors?.background?.primary || '#fff' }]}
+      >
+        <Header 
+          title={t('nav.home')} 
+          onMenuOpen={() => setMenuVisible(true)}
+        />
+        <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -545,42 +554,6 @@ export const HomeScreen = () => {
           </View>
         </View>
 
-        {/* Today's Magic Section */}
-        <View style={styles.todayMagicSection}>
-          <Text style={[styles.sectionTitle, { color: theme?.colors?.text?.primary || '#000' }]}>
-            今日の魔法 ✨
-          </Text>
-          
-          {/* Weather & Park Conditions */}
-          <TouchableOpacity style={styles.todayConditionsCard} activeOpacity={0.8}>
-            <LinearGradient
-              colors={['rgba(139, 92, 246, 0.1)', 'rgba(167, 139, 250, 0.05)']}
-              style={styles.todayConditionsGradient}
-            >
-              <View style={styles.todayConditionsContent}>
-                <View style={styles.weatherInfo}>
-                  <View style={[styles.weatherIcon, { backgroundColor: colors.blue[500] + '15' }]}>
-                    <Ionicons name="partly-sunny" size={24} color={colors.blue[500]} />
-                  </View>
-                  <View style={styles.weatherDetails}>
-                    <Text style={[styles.weatherTemp, { color: theme?.colors?.text?.primary || '#000' }]}>
-                      23°C
-                    </Text>
-                    <Text style={[styles.weatherDesc, { color: theme?.colors?.text?.secondary || '#666' }]}>
-                      晴れ時々曇り
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.todayRecommendation}>
-                  <Text style={[styles.recommendationText, { color: theme?.colors?.text?.secondary || '#666' }]}>
-                    パーク日和！☀️
-                  </Text>
-                  <Ionicons name="chevron-forward" size={16} color={colors.purple[400]} />
-                </View>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
 
         {/* Quick Actions Section */}
         <View style={styles.quickActionsSection}>
@@ -733,7 +706,13 @@ export const HomeScreen = () => {
         {/* Bottom Spacing */}
         <View style={{ height: 120 }} />
       </ScrollView>
-    </ResponsiveContainer>
+      </ResponsiveContainer>
+      
+      <DrawerMenu
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+      />
+    </SwipeableScreen>
   );
 };
 
@@ -748,7 +727,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   heroSection: {
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingTop: 20,
     marginBottom: 32,
   },
   heroGradient: {
@@ -1071,59 +1050,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     textAlign: 'center',
     color: colors.text.secondary,
-  },
-  
-  // Today's Magic Styles
-  todayMagicSection: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
-  },
-  todayConditionsCard: {
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  todayConditionsGradient: {
-    padding: 20,
-  },
-  todayConditionsContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  weatherInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  weatherIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  weatherDetails: {
-    flex: 1,
-  },
-  weatherTemp: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 2,
-  },
-  weatherDesc: {
-    fontSize: 14,
-  },
-  todayRecommendation: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexShrink: 1,
-  },
-  recommendationText: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginRight: 8,
-    flexShrink: 1,
   },
   
   // Fun Stats Styles

@@ -32,6 +32,7 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
 
   const menuItems = [
     { icon: 'home', label: 'Home', screen: 'MainTabs' },
+    { icon: 'list', label: '来園記録', screen: 'VisitList' },
     { icon: 'map', label: 'Park Map', screen: 'Map' },
     { icon: 'calendar', label: 'Calendar', screen: 'Calendar' },
     { icon: 'heart', label: 'Favorites', screen: 'Favorites' },
@@ -78,6 +79,8 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
               onPress={() => {
                 if (item.screen === 'MainTabs') {
                   props.navigation.navigate('MainTabs');
+                } else if (item.screen === 'VisitList') {
+                  props.navigation.navigate('VisitList');
                 } else {
                   // Navigate to other screens when implemented
                   console.log(`Navigate to ${item.screen}`);

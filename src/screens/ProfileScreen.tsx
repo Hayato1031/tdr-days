@@ -18,6 +18,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage, Language } from '../contexts/LanguageContext';
 import { colors } from '../styles/colors';
+import { Header } from '../components/Header';
+import { SwipeableScreen } from '../components/SwipeableScreen';
+import { DrawerMenu } from '../components/DrawerMenu';
 import ThemeCustomizer from '../components/ThemeCustomizer';
 
 const { width } = Dimensions.get('window');
@@ -27,6 +30,7 @@ export const ProfileScreen = () => {
   const { t, language, setLanguage } = useLanguage();
   const isDark = theme.mode === 'dark';
   const [showThemeCustomizer, setShowThemeCustomizer] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   const handleLanguageToggle = () => {
     const newLanguage: Language = language === 'ja' ? 'en' : 'ja';
@@ -37,7 +41,6 @@ export const ProfileScreen = () => {
     { icon: 'person', label: t('profile.editProfile'), section: 'account' },
     { icon: 'notifications', label: t('profile.notifications'), section: 'account' },
     { icon: 'shield', label: t('profile.privacy'), section: 'account' },
-    { icon: 'moon', label: t('profile.darkMode'), section: 'preferences', hasSwitch: true },
     { icon: 'color-palette', label: t('profile.themeStudio'), section: 'preferences', action: () => {
       // Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); // Uncomment when installed
       setShowThemeCustomizer(true);
@@ -62,11 +65,15 @@ export const ProfileScreen = () => {
   ];
 
   return (
-    <>
-    <ScrollView
-      style={[styles.container, { backgroundColor: theme.colors.background.primary }]}
-      showsVerticalScrollIndicator={false}
-    >
+    <SwipeableScreen onSwipeFromLeft={() => setMenuVisible(true)}>
+      <Header 
+        title={t('nav.profile')} 
+        onMenuOpen={() => setMenuVisible(true)}
+      />
+      <ScrollView
+        style={[styles.container, { backgroundColor: theme.colors.background.primary }]}
+        showsVerticalScrollIndicator={false}
+      >
       {/* Clean Profile Header */}
       <View style={[
         styles.profileHeader,
@@ -253,14 +260,19 @@ export const ProfileScreen = () => {
 
       {/* Bottom spacing */}
       <View style={{ height: 100 }} />
-    </ScrollView>
+      </ScrollView>
 
       {/* Theme Customizer Modal */}
       <ThemeCustomizer
         visible={showThemeCustomizer}
         onClose={() => setShowThemeCustomizer(false)}
       />
-    </>
+      
+      <DrawerMenu
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+      />
+    </SwipeableScreen>
   );
 };
 
