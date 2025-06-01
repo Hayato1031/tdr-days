@@ -69,7 +69,7 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
       description: '過去の来園記録を表示',
       onPress: () => {
         onClose();
-        navigation.navigate('VisitList' as never);
+        navigation.navigate('Main' as never, { screen: 'VisitList' } as never);
       }
     },
     {

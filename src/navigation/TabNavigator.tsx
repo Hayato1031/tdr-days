@@ -21,6 +21,7 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { RecordScreen } from '../screens/RecordScreen';
 import { AnalyticsScreen } from '../screens/AnalyticsScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import { VisitListScreen } from '../screens/VisitListScreen';
 
 const Tab = createBottomTabNavigator();
 const { width } = Dimensions.get('window');
@@ -120,6 +121,14 @@ export const TabNavigator = () => {
         options={{
           tabBarLabel: t('nav.home'),
           tabBarIcon: 'home' as any,
+        }}
+      />
+      <Tab.Screen
+        name="VisitList"
+        component={VisitListScreen}
+        options={{
+          tabBarLabel: '来園記録',
+          tabBarIcon: 'list' as any,
         }}
       />
       <Tab.Screen

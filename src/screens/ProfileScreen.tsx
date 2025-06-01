@@ -232,14 +232,14 @@ export const ProfileScreen = () => {
                       thumbColor={isDark ? colors.purple[500] : colors.utility.white}
                     />
                   ) : item.value ? (
-                    <Text style={[styles.menuValue, { color: theme.colors.text.tertiary }]}>
+                    <Text style={[styles.menuValue, { color: theme.colors.text.secondary }]}>
                       {item.value}
                     </Text>
                   ) : (
                     <Ionicons
                       name="chevron-forward"
                       size={20}
-                      color={theme.colors.text.tertiary}
+                      color={theme.colors.text.secondary}
                     />
                   )}
                 </TouchableOpacity>
@@ -250,7 +250,7 @@ export const ProfileScreen = () => {
 
       {/* App Version */}
       <View style={styles.versionContainer}>
-        <Text style={[styles.versionText, { color: theme.colors.text.tertiary }]}>
+        <Text style={[styles.versionText, { color: theme.colors.text.secondary }]}>
           {t('profile.version')}
         </Text>
         <Text style={[styles.versionSubtext, { color: theme.colors.text.disabled }]}>

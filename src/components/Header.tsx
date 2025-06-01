@@ -82,36 +82,68 @@ export const Header: React.FC<HeaderProps> = ({
             <View style={styles.leftSection}>
               {showBackButton ? (
                 <TouchableOpacity
-                  style={[styles.glassButton, styles.backButton]}
+                  style={styles.modernButton}
                   onPress={onBackPress}
                   activeOpacity={0.7}
                 >
                   <LinearGradient
-                    colors={['rgba(168, 85, 247, 0.1)', 'rgba(147, 51, 234, 0.05)']}
-                    style={styles.glassButtonGradient}
+                    colors={
+                      theme.mode === 'dark' 
+                        ? ['rgba(45, 45, 45, 0.95)', 'rgba(30, 30, 30, 0.85)']
+                        : ['rgba(255, 255, 255, 0.95)', 'rgba(250, 250, 250, 0.85)']
+                    }
+                    style={styles.modernButtonGradient}
                   >
-                    <Ionicons 
-                      name="arrow-back" 
-                      size={22} 
-                      color={colors.purple[600]} 
-                    />
+                    <View style={[
+                      styles.modernButtonInner,
+                      {
+                        backgroundColor: theme.mode === 'dark' 
+                          ? 'rgba(40, 40, 40, 0.98)' 
+                          : 'rgba(255, 255, 255, 0.98)',
+                        borderColor: theme.mode === 'dark'
+                          ? 'rgba(255, 255, 255, 0.1)'
+                          : 'rgba(0, 0, 0, 0.08)',
+                      }
+                    ]}>
+                      <Ionicons 
+                        name="arrow-back" 
+                        size={20} 
+                        color={theme.mode === 'dark' ? colors.gray[300] : colors.gray[700]} 
+                      />
+                    </View>
                   </LinearGradient>
                 </TouchableOpacity>
               ) : (
                 <TouchableOpacity
-                  style={styles.glassButton}
+                  style={styles.modernButton}
                   onPress={() => onMenuOpen?.()}
                   activeOpacity={0.7}
                 >
                   <LinearGradient
-                    colors={['rgba(168, 85, 247, 0.1)', 'rgba(147, 51, 234, 0.05)']}
-                    style={styles.glassButtonGradient}
+                    colors={
+                      theme.mode === 'dark' 
+                        ? ['rgba(45, 45, 45, 0.95)', 'rgba(30, 30, 30, 0.85)']
+                        : ['rgba(255, 255, 255, 0.95)', 'rgba(250, 250, 250, 0.85)']
+                    }
+                    style={styles.modernButtonGradient}
                   >
-                    <Ionicons 
-                      name="menu" 
-                      size={22} 
-                      color={colors.purple[600]} 
-                    />
+                    <View style={[
+                      styles.modernButtonInner,
+                      {
+                        backgroundColor: theme.mode === 'dark' 
+                          ? 'rgba(40, 40, 40, 0.98)' 
+                          : 'rgba(255, 255, 255, 0.98)',
+                        borderColor: theme.mode === 'dark'
+                          ? 'rgba(255, 255, 255, 0.1)'
+                          : 'rgba(0, 0, 0, 0.08)',
+                      }
+                    ]}>
+                      <Ionicons 
+                        name="menu" 
+                        size={20} 
+                        color={theme.mode === 'dark' ? colors.gray[300] : colors.gray[700]} 
+                      />
+                    </View>
                   </LinearGradient>
                 </TouchableOpacity>
               )}
@@ -159,19 +191,35 @@ export const Header: React.FC<HeaderProps> = ({
                   {rightActions.map((action, index) => (
                     <TouchableOpacity
                       key={index}
-                      style={[styles.glassButton, { marginLeft: index > 0 ? 8 : 0 }]}
+                      style={[styles.modernButton, { marginLeft: index > 0 ? 8 : 0 }]}
                       onPress={action.onPress}
                       activeOpacity={0.7}
                     >
                       <LinearGradient
-                        colors={['rgba(168, 85, 247, 0.1)', 'rgba(147, 51, 234, 0.05)']}
-                        style={styles.glassButtonGradient}
+                        colors={
+                          theme.mode === 'dark' 
+                            ? ['rgba(45, 45, 45, 0.95)', 'rgba(30, 30, 30, 0.85)']
+                            : ['rgba(255, 255, 255, 0.95)', 'rgba(250, 250, 250, 0.85)']
+                        }
+                        style={styles.modernButtonGradient}
                       >
-                        <Ionicons 
-                          name={action.icon as any} 
-                          size={18} 
-                          color={colors.purple[600]} 
-                        />
+                        <View style={[
+                          styles.modernButtonInner,
+                          {
+                            backgroundColor: theme.mode === 'dark' 
+                              ? 'rgba(40, 40, 40, 0.98)' 
+                              : 'rgba(255, 255, 255, 0.98)',
+                            borderColor: theme.mode === 'dark'
+                              ? 'rgba(255, 255, 255, 0.1)'
+                              : 'rgba(0, 0, 0, 0.08)',
+                          }
+                        ]}>
+                          <Ionicons 
+                            name={action.icon as any} 
+                            size={18} 
+                            color={theme.mode === 'dark' ? colors.gray[300] : colors.gray[700]} 
+                          />
+                        </View>
                       </LinearGradient>
                     </TouchableOpacity>
                   ))}
@@ -257,6 +305,43 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  modernButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    overflow: 'hidden',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+  },
+  modernButtonGradient: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 14,
+    padding: 1.5,
+  },
+  modernButtonInner: {
+    flex: 1,
+    borderRadius: 12.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 0.5,
+  },
+  circleButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
   glassButton: {
     width: 44,
     height: 44,
@@ -269,13 +354,21 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   glassButtonGradient: {
-    width: '100%',
-    height: '100%',
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 22,
+    borderWidth: 0,
+    overflow: 'hidden',
+  },
+  iconContainer: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 22,
+    overflow: 'hidden',
   },
   backButton: {
     // Additional styling for back button if needed

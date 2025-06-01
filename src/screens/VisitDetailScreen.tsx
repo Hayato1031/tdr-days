@@ -8,7 +8,7 @@ import {
   Alert,
   Share,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
@@ -25,7 +25,7 @@ interface RouteParams {
   visitId: string;
 }
 
-const VisitDetailScreen = () => {
+export const VisitDetailScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { theme } = useTheme();
@@ -265,11 +265,19 @@ const VisitDetailScreen = () => {
               styles.parkIcon,
               { backgroundColor: getParkColor(visit.parkType) + '30' }
             ]}>
-              <Ionicons 
-                name={getParkIcon(visit.parkType) as any} 
-                size={32} 
-                color={getParkColor(visit.parkType)} 
-              />
+              {visit.parkType === ParkType.LAND ? (
+                <FontAwesome5 
+                  name="fort-awesome" 
+                  size={32} 
+                  color={getParkColor(visit.parkType)} 
+                />
+              ) : (
+                <FontAwesome5 
+                  name="globe" 
+                  size={32} 
+                  color={getParkColor(visit.parkType)} 
+                />
+              )}
             </View>
             <View style={styles.parkDetails}>
               <Text style={[styles.parkName, { color: theme.colors.text.primary }]}>
@@ -283,7 +291,7 @@ const VisitDetailScreen = () => {
         </LinearGradient>
 
         {/* Visit Information */}
-        <View style={[styles.section, { backgroundColor: theme.colors.surface.primary }]}>
+        <View style={[styles.section, { backgroundColor: theme.colors.background.card }]}>
           <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>
             来園情報
           </Text>
@@ -337,7 +345,7 @@ const VisitDetailScreen = () => {
         </View>
 
         {/* Statistics */}
-        <View style={[styles.section, { backgroundColor: theme.colors.surface.primary }]}>
+        <View style={[styles.section, { backgroundColor: theme.colors.background.card }]}>
           <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>
             統計情報
           </Text>
@@ -377,7 +385,7 @@ const VisitDetailScreen = () => {
 
         {/* Actions */}
         {actions.length > 0 && (
-          <View style={[styles.section, { backgroundColor: theme.colors.surface.primary }]}>
+          <View style={[styles.section, { backgroundColor: theme.colors.background.card }]}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>
               アクション履歴
             </Text>
@@ -408,7 +416,7 @@ const VisitDetailScreen = () => {
                     <Text style={[styles.actionCategory, { color: theme.colors.text.secondary }]}>
                       {getCategoryName(action.category)} • {action.area}
                     </Text>
-                    <Text style={[styles.actionTime, { color: theme.colors.text.tertiary }]}>
+                    <Text style={[styles.actionTime, { color: theme.colors.text.secondary }]}>
                       {new Date(action.time).toLocaleTimeString('ja-JP', { 
                         hour: '2-digit', 
                         minute: '2-digit' 
@@ -418,8 +426,8 @@ const VisitDetailScreen = () => {
                   <View style={styles.actionMeta}>
                     {action.photos.length > 0 && (
                       <View style={styles.photoCount}>
-                        <Ionicons name="image" size={12} color={theme.colors.text.tertiary} />
-                        <Text style={[styles.photoCountText, { color: theme.colors.text.tertiary }]}>
+                        <Ionicons name="image" size={12} color={theme.colors.text.secondary} />
+                        <Text style={[styles.photoCountText, { color: theme.colors.text.secondary }]}>
                           {action.photos.length}
                         </Text>
                       </View>
@@ -427,7 +435,7 @@ const VisitDetailScreen = () => {
                     <Ionicons 
                       name="chevron-forward" 
                       size={16} 
-                      color={theme.colors.text.tertiary} 
+                      color={theme.colors.text.secondary} 
                     />
                   </View>
                 </View>
@@ -607,4 +615,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default VisitDetailScreen;

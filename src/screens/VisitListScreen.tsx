@@ -8,7 +8,7 @@ import {
   RefreshControl,
   SectionList,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
@@ -25,7 +25,7 @@ interface VisitSection {
   data: Visit[];
 }
 
-const VisitListScreen = () => {
+export const VisitListScreen = () => {
   const navigation = useNavigation();
   const { theme } = useTheme();
   const { visits, isLoading, refreshData } = useVisits();
@@ -108,9 +108,9 @@ const VisitListScreen = () => {
     <TouchableOpacity
       style={[
         styles.visitCard,
-        { backgroundColor: theme.colors.surface.primary }
+        { backgroundColor: theme.colors.background.card }
       ]}
-      onPress={() => navigation.navigate('VisitDetail' as never, { visitId: item.id } as never)}
+      onPress={() => (navigation as any).navigate('VisitDetail', { visitId: item.id })}
     >
       <LinearGradient
         colors={[
@@ -126,11 +126,19 @@ const VisitListScreen = () => {
                 styles.parkIcon,
                 { backgroundColor: getParkColor(item.parkType) + '20' }
               ]}>
-                <Ionicons 
-                  name={getParkIcon(item.parkType) as any} 
-                  size={20} 
-                  color={getParkColor(item.parkType)} 
-                />
+                {item.parkType === ParkType.LAND ? (
+                  <FontAwesome5 
+                    name="fort-awesome" 
+                    size={20} 
+                    color={getParkColor(item.parkType)} 
+                  />
+                ) : (
+                  <FontAwesome5 
+                    name="globe" 
+                    size={20} 
+                    color={getParkColor(item.parkType)} 
+                  />
+                )}
               </View>
               <Text style={[styles.parkName, { color: theme.colors.text.primary }]}>
                 {item.parkType === ParkType.LAND ? 'ディズニーランド' : 'ディズニーシー'}
@@ -143,7 +151,7 @@ const VisitListScreen = () => {
           <Ionicons 
             name="chevron-forward" 
             size={20} 
-            color={theme.colors.text.tertiary} 
+            color={theme.colors.text.secondary} 
           />
         </View>
 
@@ -159,24 +167,24 @@ const VisitListScreen = () => {
         <View style={styles.visitStats}>
           {item.actionCount !== undefined && (
             <View style={styles.statItem}>
-              <Ionicons name="list" size={14} color={theme.colors.text.tertiary} />
-              <Text style={[styles.statText, { color: theme.colors.text.tertiary }]}>
+              <Ionicons name="list" size={14} color={theme.colors.text.secondary} />
+              <Text style={[styles.statText, { color: theme.colors.text.secondary }]}>
                 {item.actionCount}件のアクション
               </Text>
             </View>
           )}
           {item.totalPhotoCount !== undefined && (
             <View style={styles.statItem}>
-              <Ionicons name="image" size={14} color={theme.colors.text.tertiary} />
-              <Text style={[styles.statText, { color: theme.colors.text.tertiary }]}>
+              <Ionicons name="image" size={14} color={theme.colors.text.secondary} />
+              <Text style={[styles.statText, { color: theme.colors.text.secondary }]}>
                 {item.totalPhotoCount}枚の写真
               </Text>
             </View>
           )}
           {item.startTime && item.endTime && (
             <View style={styles.statItem}>
-              <Ionicons name="time" size={14} color={theme.colors.text.tertiary} />
-              <Text style={[styles.statText, { color: theme.colors.text.tertiary }]}>
+              <Ionicons name="time" size={14} color={theme.colors.text.secondary} />
+              <Text style={[styles.statText, { color: theme.colors.text.secondary }]}>
                 {new Date(item.startTime).toLocaleTimeString('ja-JP', { 
                   hour: '2-digit', 
                   minute: '2-digit' 
@@ -243,7 +251,7 @@ const VisitListScreen = () => {
             onMenuOpen={() => setMenuVisible(true)}
           />
         <View style={styles.emptyContainer}>
-          <Ionicons name="calendar-outline" size={64} color={theme.colors.text.tertiary} />
+          <Ionicons name="calendar-outline" size={64} color={theme.colors.text.secondary} />
           <Text style={[styles.emptyTitle, { color: theme.colors.text.primary }]}>
             まだ来園記録がありません
           </Text>
@@ -435,4 +443,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default VisitListScreen;

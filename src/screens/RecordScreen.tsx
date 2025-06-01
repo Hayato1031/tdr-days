@@ -441,7 +441,7 @@ export const RecordScreen = () => {
                     }
                   ]}
                   placeholder={t('record.notesPlaceholder')}
-                  placeholderTextColor={theme.colors.text.tertiary}
+                  placeholderTextColor={theme.colors.text.secondary}
                   value={notes}
                   onChangeText={setNotes}
                   multiline
@@ -453,7 +453,7 @@ export const RecordScreen = () => {
                   <Text style={[
                     styles.characterCount, 
                     { 
-                      color: theme.colors.text.tertiary,
+                      color: theme.colors.text.secondary,
                       fontSize: safeRFontSize(12),
                     }
                   ]}>

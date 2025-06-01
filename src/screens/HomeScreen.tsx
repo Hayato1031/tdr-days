@@ -20,6 +20,7 @@ import DraggableFlatList, {
   ShadowDecorator,
   OpacityDecorator,
 } from 'react-native-draggable-flatlist';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useVisits } from '../hooks/useVisits';
@@ -238,6 +239,7 @@ const QuickActionButton = ({ icon, label, onPress, color }: any) => {
 };
 
 export const HomeScreen = () => {
+  const navigation = useNavigation();
   const { theme } = useTheme();
   const { t } = useLanguage();
   const isDark = theme?.mode === 'dark';
@@ -641,6 +643,7 @@ export const HomeScreen = () => {
                   key={visit.id}
                   style={styles.recentVisitCard}
                   activeOpacity={0.8}
+                  onPress={() => (navigation as any).navigate('VisitDetail', { visitId: visit.id })}
                 >
                   <LinearGradient
                     colors={[

@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useTheme } from '../contexts/ThemeContext';
 import { TabNavigator } from './TabNavigator';
-import { VisitListScreen, VisitDetailScreen } from '../screens';
+import { VisitDetailScreen } from '../screens';
 import { colors } from '../styles/colors';
 
 const Stack = createStackNavigator();
@@ -35,7 +35,6 @@ export const AppNavigator = () => {
         }}
       >
         <Stack.Screen name="Main" component={TabNavigator} />
-        <Stack.Screen name="VisitList" component={VisitListScreen} />
         <Stack.Screen name="VisitDetail" component={VisitDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>
