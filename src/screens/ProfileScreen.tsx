@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Dimensions,
   Animated,
   Platform,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -22,6 +23,14 @@ import { Header } from '../components/Header';
 import { SwipeableScreen } from '../components/SwipeableScreen';
 import { DrawerMenu } from '../components/DrawerMenu';
 import ThemeCustomizer from '../components/ThemeCustomizer';
+import { ProfileEditModal } from '../components/ProfileEditModal';
+import { HelpSupportModal } from '../components/HelpSupportModal';
+import { AboutAppModal } from '../components/AboutAppModal';
+import { TermsOfServiceModal } from '../components/TermsOfServiceModal';
+import { profileService, UserProfile } from '../services/profileService';
+import { useVisits } from '../hooks/useVisits';
+import { useActions } from '../hooks/useActions';
+import { ActionCategory } from '../types/models';
 
 const { width } = Dimensions.get('window');
 
@@ -30,38 +39,130 @@ export const ProfileScreen = () => {
   const { t, language, setLanguage } = useLanguage();
   const isDark = theme.mode === 'dark';
   const [showThemeCustomizer, setShowThemeCustomizer] = useState(false);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const [showHelpSupport, setShowHelpSupport] = useState(false);
+  const [showAboutApp, setShowAboutApp] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  
+  // Get actual data from hooks
+  const { visits, deleteAllVisits } = useVisits();
+  const { actions, deleteAllActions } = useActions();
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      const profile = await profileService.getProfile();
+      setUserProfile(profile);
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    }
+  };
+
+  const handleProfileUpdate = (updatedProfile: UserProfile) => {
+    setUserProfile(updatedProfile);
+  };
 
   const handleLanguageToggle = () => {
     const newLanguage: Language = language === 'ja' ? 'en' : 'ja';
     setLanguage(newLanguage);
   };
 
+  const handleDeleteAllVisits = () => {
+    Alert.alert(
+      language === 'ja' ? '来園記録を全削除' : 'Delete All Visit Records',
+      language === 'ja' ? 'すべての来園記録とアクションが削除されます。この操作は取り消せません。本当に削除しますか？' : 'All visit records and actions will be deleted. This action cannot be undone. Are you sure you want to delete?',
+      [
+        {
+          text: language === 'ja' ? 'キャンセル' : 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: language === 'ja' ? '削除' : 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteAllActions();
+              await deleteAllVisits();
+              Alert.alert(
+                language === 'ja' ? '完了' : 'Complete', 
+                language === 'ja' ? 'すべての来園記録が削除されました。' : 'All visit records have been deleted.'
+              );
+            } catch (error) {
+              console.error('Error deleting all visits:', error);
+              Alert.alert(
+                language === 'ja' ? 'エラー' : 'Error', 
+                language === 'ja' ? '削除に失敗しました。' : 'Failed to delete.'
+              );
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const menuItems = [
-    { icon: 'person', label: t('profile.editProfile'), section: 'account' },
-    { icon: 'notifications', label: t('profile.notifications'), section: 'account' },
-    { icon: 'shield', label: t('profile.privacy'), section: 'account' },
-    { icon: 'color-palette', label: t('profile.themeStudio'), section: 'preferences', action: () => {
-      // Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); // Uncomment when installed
-      setShowThemeCustomizer(true);
-    }, badge: themeConfig.designStyle !== 'material' ? themeConfig.designStyle : null },
-    { icon: 'language', label: t('profile.language'), section: 'preferences', 
-      value: language === 'ja' ? t('profile.japanese') : t('profile.english'),
-      action: handleLanguageToggle },
-    { icon: 'calendar', label: t('profile.dateFormat'), section: 'preferences', value: t('date.format') },
-    { icon: 'cloud-upload', label: t('profile.backupData'), section: 'data' },
-    { icon: 'cloud-download', label: t('profile.restoreData'), section: 'data' },
-    { icon: 'trash', label: t('profile.clearCache'), section: 'data' },
-    { icon: 'help-circle', label: t('profile.helpSupport'), section: 'other' },
-    { icon: 'information-circle', label: t('profile.about'), section: 'other' },
-    { icon: 'log-out', label: t('profile.signOut'), section: 'other', isDestructive: true },
+    { 
+      icon: 'person', 
+      label: language === 'ja' ? 'プロフィール編集' : 'Edit Profile', 
+      section: 'account', 
+      action: () => setShowProfileEdit(true) 
+    },
+    { 
+      icon: 'language', 
+      label: language === 'ja' ? '言語設定' : 'Language', 
+      section: 'preferences', 
+      value: language === 'ja' ? '日本語 → English' : 'English → 日本語',
+      action: handleLanguageToggle 
+    },
+    { 
+      icon: 'trash', 
+      label: language === 'ja' ? '来園記録を全削除' : 'Delete All Visit Records', 
+      section: 'data', 
+      action: handleDeleteAllVisits, 
+      isDestructive: true 
+    },
+    { 
+      icon: 'help-circle', 
+      label: language === 'ja' ? 'ヘルプ・サポート' : 'Help & Support', 
+      section: 'other', 
+      action: () => setShowHelpSupport(true) 
+    },
+    { 
+      icon: 'information-circle', 
+      label: language === 'ja' ? 'アプリについて' : 'About App', 
+      section: 'other', 
+      action: () => setShowAboutApp(true) 
+    },
+    { 
+      icon: 'document-text', 
+      label: language === 'ja' ? '利用規約' : 'Terms of Service', 
+      section: 'other', 
+      action: () => setShowTerms(true) 
+    },
   ];
 
   const sections = [
-    { key: 'account', title: t('profile.account') },
-    { key: 'preferences', title: t('profile.preferences') },
-    { key: 'data', title: t('profile.dataStorage') },
-    { key: 'other', title: t('profile.other') },
+    { 
+      key: 'account', 
+      title: language === 'ja' ? 'アカウント' : 'Account' 
+    },
+    { 
+      key: 'preferences', 
+      title: language === 'ja' ? '設定' : 'Preferences' 
+    },
+    { 
+      key: 'data', 
+      title: language === 'ja' ? 'データ管理' : 'Data Management' 
+    },
+    { 
+      key: 'other', 
+      title: language === 'ja' ? 'その他' : 'Other' 
+    },
   ];
 
   return (
@@ -101,22 +202,23 @@ export const ProfileScreen = () => {
                 borderColor: colors.purple.bright + '30',
               }
             ]}>
-              <Ionicons name="person" size={48} color={colors.purple.bright} />
+              {userProfile?.avatarUri ? (
+                <Image source={{ uri: userProfile.avatarUri }} style={styles.avatarImage} />
+              ) : (
+                <Ionicons name="person" size={48} color={colors.purple.bright} />
+              )}
             </View>
           </View>
           <Text style={[styles.profileName, { color: theme.colors.text.primary }]}>
-            {t('profile.disneyExplorer')}
-          </Text>
-          <Text style={[styles.profileEmail, { color: theme.colors.text.secondary }]}>
-            {t('profile.email')}
+            {userProfile?.name || t('profile.disneyExplorer')}
           </Text>
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: colors.purple.bright }]}>
-                42
+                {visits.length}
               </Text>
               <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>
-                {t('profile.days')}
+                {language === 'ja' ? '来園数' : 'Visits'}
               </Text>
             </View>
             <View style={[
@@ -125,10 +227,10 @@ export const ProfileScreen = () => {
             ]} />
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: colors.blue[500] }]}>
-                156
+                {actions.filter(action => action.category === ActionCategory.ATTRACTION).length}
               </Text>
               <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>
-                {t('profile.attractions')}
+                {language === 'ja' ? 'アトラクション' : 'Attractions'}
               </Text>
             </View>
             <View style={[
@@ -137,10 +239,10 @@ export const ProfileScreen = () => {
             ]} />
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: colors.green[500] }]}>
-                284
+                {actions.reduce((total, action) => total + action.photos.length, 0)}
               </Text>
               <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>
-                {t('profile.photos')}
+                {language === 'ja' ? '写真数' : 'Photos'}
               </Text>
             </View>
           </View>
@@ -251,10 +353,10 @@ export const ProfileScreen = () => {
       {/* App Version */}
       <View style={styles.versionContainer}>
         <Text style={[styles.versionText, { color: theme.colors.text.secondary }]}>
-          {t('profile.version')}
+          TDR Days v1.0.0
         </Text>
         <Text style={[styles.versionSubtext, { color: theme.colors.text.disabled }]}>
-          {t('profile.madeWithLove')}
+          © 2024 TDR Days Team
         </Text>
       </View>
 
@@ -262,10 +364,31 @@ export const ProfileScreen = () => {
       <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Theme Customizer Modal */}
-      <ThemeCustomizer
-        visible={showThemeCustomizer}
-        onClose={() => setShowThemeCustomizer(false)}
+      
+      {/* Profile Edit Modal */}
+      <ProfileEditModal
+        visible={showProfileEdit}
+        onClose={() => setShowProfileEdit(false)}
+        onUpdate={handleProfileUpdate}
+        currentProfile={userProfile}
+      />
+      
+      {/* Help Support Modal */}
+      <HelpSupportModal
+        visible={showHelpSupport}
+        onClose={() => setShowHelpSupport(false)}
+      />
+      
+      {/* About App Modal */}
+      <AboutAppModal
+        visible={showAboutApp}
+        onClose={() => setShowAboutApp(false)}
+      />
+      
+      {/* Terms of Service Modal */}
+      <TermsOfServiceModal
+        visible={showTerms}
+        onClose={() => setShowTerms(false)}
       />
       
       <DrawerMenu
@@ -281,7 +404,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   profileHeader: {
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingTop: 20,
     paddingBottom: 0,
     marginBottom: 24,
   },
@@ -297,6 +420,11 @@ const styles = StyleSheet.create({
     borderRadius: 48,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
   },
   profileName: {
     fontSize: 28,

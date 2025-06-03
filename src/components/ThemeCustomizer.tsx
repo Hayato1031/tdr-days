@@ -616,10 +616,14 @@ const styles = StyleSheet.create({
   optionGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    justifyContent: 'center',
+    alignItems: 'stretch',
+    gap: 6,
   },
   optionCard: {
-    width: (screenWidth - 72) / 4,
+    flex: 1,
+    minWidth: 60,
+    maxWidth: 80,
     aspectRatio: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -630,6 +634,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 4,
     elevation: 2,
+    marginHorizontal: 3,
   },
   optionLabel: {
     fontSize: 11,

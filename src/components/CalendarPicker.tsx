@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { colors } from '../styles/colors';
 import { spacing, borderRadius } from '../styles/theme';
 
@@ -31,6 +32,7 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
   maxDate,
 }) => {
   const { theme } = useTheme();
+  const { language } = useLanguage();
   const isDark = theme.mode === 'dark';
   const [calendarVisible, setCalendarVisible] = useState(false);
   const [slideAnim] = useState(new Animated.Value(0));
@@ -57,20 +59,37 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
     toggleCalendar();
   };
 
+  const getTodayInJST = () => {
+    const now = new Date();
+    const jstOffset = 9 * 60; // JST is UTC+9
+    const jstTime = new Date(now.getTime() + (jstOffset * 60 * 1000));
+    return jstTime.toISOString().split('T')[0];
+  };
+
+  const getTomorrowInJST = () => {
+    const now = new Date();
+    const jstOffset = 9 * 60; // JST is UTC+9
+    const jstTime = new Date(now.getTime() + (jstOffset * 60 * 1000));
+    jstTime.setDate(jstTime.getDate() + 1);
+    return jstTime.toISOString().split('T')[0];
+  };
+
   const formatDisplayDate = (dateString?: string) => {
-    if (!dateString) return '日付を選択';
+    if (!dateString) {
+      return language === 'ja' ? '日付を選択' : 'Select Date';
+    }
     
-    const date = new Date(dateString);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
+    const todayJST = getTodayInJST();
+    const tomorrowJST = getTomorrowInJST();
     
-    if (dateString === today.toISOString().split('T')[0]) {
-      return '今日';
-    } else if (dateString === tomorrow.toISOString().split('T')[0]) {
-      return '明日';
+    if (dateString === todayJST) {
+      return language === 'ja' ? '今日' : 'Today';
+    } else if (dateString === tomorrowJST) {
+      return language === 'ja' ? '明日' : 'Tomorrow';
     } else {
-      return date.toLocaleDateString('ja-JP', {
+      const date = new Date(dateString);
+      const locale = language === 'ja' ? 'ja-JP' : 'en-US';
+      return date.toLocaleDateString(locale, {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -231,7 +250,7 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
           ]}>
             <View style={styles.calendarHeader}>
               <Text style={[styles.calendarTitle, { color: theme.colors.text.primary }]}>
-                日付を選択
+                {language === 'ja' ? '日付を選択' : 'Select Date'}
               </Text>
               <TouchableOpacity
                 onPress={toggleCalendar}

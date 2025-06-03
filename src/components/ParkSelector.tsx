@@ -10,6 +10,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { colors } from '../styles/colors';
 import { spacing, borderRadius } from '../styles/theme';
 import { ParkType } from '../types/models';
@@ -24,27 +25,24 @@ interface ParkOption {
   icon: string;
   color: string[];
   description: string;
-  highlights: string[];
 }
 
-const PARK_OPTIONS: ParkOption[] = [
+const getParkOptions = (language: string): ParkOption[] => [
   {
     type: ParkType.LAND,
-    name: 'ディズニーランド',
-    fullName: '東京ディズニーランド',
+    name: language === 'ja' ? 'ディズニーランド' : 'Disneyland',
+    fullName: language === 'ja' ? '東京ディズニーランド' : 'Tokyo Disneyland',
     icon: 'fort-awesome',
     color: ['#ff6b6b', '#ee5a52', '#ff8787'],
-    description: '夢と魔法の王国',
-    highlights: ['スペースマウンテン', 'ホーンテッドマンション', 'ビッグサンダーマウンテン'],
+    description: language === 'ja' ? '夢と魔法の王国' : 'The magical kingdom where dreams come true',
   },
   {
     type: ParkType.SEA,
-    name: 'ディズニーシー',
-    fullName: '東京ディズニーシー',
+    name: language === 'ja' ? 'ディズニーシー' : 'DisneySea',
+    fullName: language === 'ja' ? '東京ディズニーシー' : 'Tokyo DisneySea',
     icon: 'globe',
     color: ['#4ecdc4', '#45b7b8', '#6c5ce7'],
-    description: '冒険とイマジネーションの海',
-    highlights: ['センター・オブ・ジ・アース', 'タワー・オブ・テラー', 'ファンタジースプリングス'],
+    description: language === 'ja' ? '冒険とイマジネーションの海' : 'Discover the wonders of adventure and imagination',
   },
 ];
 
@@ -58,7 +56,10 @@ export const ParkSelector: React.FC<ParkSelectorProps> = ({
   onParkSelect,
 }) => {
   const { theme } = useTheme();
+  const { language } = useLanguage();
   const isDark = theme.mode === 'dark';
+  
+  const parkOptions = getParkOptions(language);
   
   // Animation refs for each card
   const landScaleAnim = useRef(new Animated.Value(1)).current;
@@ -295,35 +296,6 @@ export const ParkSelector: React.FC<ParkSelectorProps> = ({
                   {park.description}
                 </Text>
 
-                {/* Highlights */}
-                <View style={styles.highlightsContainer}>
-                  {park.highlights.slice(0, 2).map((highlight, index) => (
-                    <View
-                      key={index}
-                      style={[
-                        styles.highlightPill,
-                        {
-                          backgroundColor: isSelected
-                            ? 'rgba(255, 255, 255, 0.2)'
-                            : `${park.color[1]}15`,
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.highlightText,
-                          {
-                            color: isSelected
-                              ? colors.text.dark.primary
-                              : park.color[1],
-                          },
-                        ]}
-                      >
-                        {highlight}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
               </View>
 
               {/* Floating Elements */}
@@ -370,14 +342,14 @@ export const ParkSelector: React.FC<ParkSelectorProps> = ({
   return (
     <View style={styles.container}>
       <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>
-        パークを選択
+        {language === 'ja' ? 'パークを選択' : 'Select a Park'}
       </Text>
       <Text style={[styles.sectionSubtitle, { color: theme.colors.text.secondary }]}>
-        魔法の一日をどちらで始めますか？
+        {language === 'ja' ? '魔法の一日をどちらで始めますか？' : 'Where will you start your magical day?'}
       </Text>
       
       <View style={styles.cardsContainer}>
-        {PARK_OPTIONS.map(renderParkCard)}
+        {parkOptions.map(renderParkCard)}
       </View>
     </View>
   );
@@ -479,19 +451,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     marginBottom: 12,
-  },
-  highlightsContainer: {
-    gap: 8,
-  },
-  highlightPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 9999,
-    alignSelf: 'flex-start',
-  },
-  highlightText: {
-    fontSize: 12,
-    fontWeight: '600',
   },
   floatingElements: {
     position: 'absolute',

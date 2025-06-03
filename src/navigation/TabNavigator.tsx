@@ -127,7 +127,7 @@ export const TabNavigator = () => {
         name="VisitList"
         component={VisitListScreen}
         options={{
-          tabBarLabel: '来園記録',
+          tabBarLabel: t('nav.visitList'),
           tabBarIcon: 'list' as any,
         }}
       />

@@ -27,6 +27,7 @@ interface UseVisitsReturn {
   createVisit: (visit: CreateInput<Visit>) => Promise<Visit>;
   updateVisit: (id: string, updates: UpdateInput<Visit>) => Promise<Visit | null>;
   deleteVisit: (id: string) => Promise<boolean>;
+  deleteAllVisits: () => Promise<boolean>;
   getVisit: (id: string) => Promise<Visit | null>;
 
   // Companion operations
@@ -197,6 +198,32 @@ export function useVisits(): UseVisitsReturn {
     }
   }, [companions]);
 
+  const deleteAllVisits = useCallback(async (): Promise<boolean> => {
+    try {
+      // Delete all visits
+      await storage.clear(STORAGE_KEYS.VISITS);
+      
+      // Delete all actions
+      await storage.clear(STORAGE_KEYS.ACTIONS);
+      
+      // Clear companion visit IDs
+      const allCompanions = await storage.getAll<Companion>(STORAGE_KEYS.COMPANIONS);
+      if (allCompanions.length > 0) {
+        const updates = allCompanions.map(companion => ({
+          id: companion.id,
+          data: { visitIds: [] }
+        }));
+        await storage.updateMany<Companion>(STORAGE_KEYS.COMPANIONS, updates);
+      }
+      
+      await loadData();
+      return true;
+    } catch (err) {
+      setError(err as StorageError);
+      throw err;
+    }
+  }, []);
+
   const getVisit = useCallback(async (id: string): Promise<Visit | null> => {
     try {
       return await storage.get<Visit>(STORAGE_KEYS.VISITS, id);
@@ -281,8 +308,14 @@ export function useVisits(): UseVisitsReturn {
       return await storage.find<Visit>(
         STORAGE_KEYS.VISITS,
         visit => {
+          // 日本時間での日付比較
+          const jstOffset = 9 * 60; // JST is UTC+9
           const visitDate = new Date(visit.date);
-          return visitDate >= dateRange.startDate && visitDate <= dateRange.endDate;
+          const visitDateJST = new Date(visitDate.getTime() + (jstOffset * 60 * 1000));
+          const startDateJST = new Date(dateRange.startDate.getTime() + (jstOffset * 60 * 1000));
+          const endDateJST = new Date(dateRange.endDate.getTime() + (jstOffset * 60 * 1000));
+          
+          return visitDateJST >= startDateJST && visitDateJST <= endDateJST;
         }
       );
     } catch (err) {
@@ -323,8 +356,14 @@ export function useVisits(): UseVisitsReturn {
           if (filter.parkType && visit.parkType !== filter.parkType) return false;
           
           if (filter.dateRange) {
+            // 日本時間での日付比較
+            const jstOffset = 9 * 60; // JST is UTC+9
             const visitDate = new Date(visit.date);
-            if (visitDate < filter.dateRange.startDate || visitDate > filter.dateRange.endDate) {
+            const visitDateJST = new Date(visitDate.getTime() + (jstOffset * 60 * 1000));
+            const startDateJST = new Date(filter.dateRange.startDate.getTime() + (jstOffset * 60 * 1000));
+            const endDateJST = new Date(filter.dateRange.endDate.getTime() + (jstOffset * 60 * 1000));
+            
+            if (visitDateJST < startDateJST || visitDateJST > endDateJST) {
               return false;
             }
           }
@@ -450,6 +489,7 @@ export function useVisits(): UseVisitsReturn {
     createVisit,
     updateVisit,
     deleteVisit,
+    deleteAllVisits,
     getVisit,
 
     // Companion operations

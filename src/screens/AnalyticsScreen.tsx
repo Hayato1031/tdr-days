@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -52,6 +51,12 @@ type PeriodType = 'monthly' | 'yearly' | 'all-time' | 'custom';
 interface CustomDateRange {
   startDate: Date;
   endDate: Date;
+}
+
+// Specific period selector
+interface SpecificPeriod {
+  type: 'month' | 'year';
+  value: number; // month: 0-11, year: actual year
 }
 
 export const AnalyticsScreen = () => {
@@ -132,6 +137,10 @@ export const AnalyticsScreen = () => {
 
   // State
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>('yearly');
+  const [specificPeriod, setSpecificPeriod] = useState<SpecificPeriod>({
+    type: 'year',
+    value: new Date().getFullYear(),
+  });
   const [customDateRange, setCustomDateRange] = useState<CustomDateRange>({
     startDate: new Date(new Date().getFullYear(), 0, 1),
     endDate: new Date(),
@@ -156,21 +165,38 @@ export const AnalyticsScreen = () => {
 
   // Calculate current period filter
   const currentFilter = useMemo((): { visitFilter?: VisitFilter; actionFilter?: ActionFilter } => {
-    const now = new Date();
     let dateRange: DateRange | undefined;
 
     switch (selectedPeriod) {
       case 'monthly':
-        dateRange = {
-          startDate: new Date(now.getFullYear(), now.getMonth(), 1),
-          endDate: new Date(now.getFullYear(), now.getMonth() + 1, 0),
-        };
+        if (specificPeriod.type === 'month') {
+          const year = Math.floor(specificPeriod.value / 100);
+          const month = specificPeriod.value % 100;
+          dateRange = {
+            startDate: new Date(year, month, 1),
+            endDate: new Date(year, month + 1, 0),
+          };
+        } else {
+          const now = new Date();
+          dateRange = {
+            startDate: new Date(now.getFullYear(), now.getMonth(), 1),
+            endDate: new Date(now.getFullYear(), now.getMonth() + 1, 0),
+          };
+        }
         break;
       case 'yearly':
-        dateRange = {
-          startDate: new Date(now.getFullYear(), 0, 1),
-          endDate: new Date(now.getFullYear(), 11, 31),
-        };
+        if (specificPeriod.type === 'year') {
+          dateRange = {
+            startDate: new Date(specificPeriod.value, 0, 1),
+            endDate: new Date(specificPeriod.value, 11, 31),
+          };
+        } else {
+          const now = new Date();
+          dateRange = {
+            startDate: new Date(now.getFullYear(), 0, 1),
+            endDate: new Date(now.getFullYear(), 11, 31),
+          };
+        }
         break;
       case 'custom':
         dateRange = {
@@ -188,7 +214,7 @@ export const AnalyticsScreen = () => {
       visitFilter: dateRange ? { dateRange } : undefined,
       actionFilter: dateRange ? { dateRange } : undefined,
     };
-  }, [selectedPeriod, customDateRange]);
+  }, [selectedPeriod, specificPeriod, customDateRange]);
 
   // Analytics data
   const [visitStats, setVisitStats] = useState<any>(null);
@@ -308,15 +334,6 @@ export const AnalyticsScreen = () => {
     const landVisits = visitStats.landVisits || 0;
     const seaVisits = visitStats.seaVisits || 0;
 
-    // Debug logging for park visits data
-    console.log('Park visits data:', {
-      totalVisits,
-      landVisits,
-      seaVisits,
-      visitStats,
-      purpleColor: colors.purple[500]
-    });
-
     const data = [
       {
         label: t('home.tokyoDisneyland'),
@@ -333,26 +350,6 @@ export const AnalyticsScreen = () => {
     ];
 
     const filteredData = data.filter(item => item.value > 0);
-    console.log('Filtered park visits data:', filteredData);
-    
-    // If no real data, return test data for debugging
-    if (filteredData.length === 0) {
-      console.log('No park visit data, returning test data');
-      return [
-        {
-          label: 'Tokyo Disneyland',
-          value: 15,
-          color: '#9333ea',
-          percentage: 60,
-        },
-        {
-          label: 'Tokyo DisneySea',
-          value: 10,
-          color: '#06b6d4',
-          percentage: 40,
-        },
-      ];
-    }
     
     return filteredData;
   }, [visitStats]);
@@ -832,79 +829,41 @@ export const AnalyticsScreen = () => {
 
   return (
     <SwipeableScreen onSwipeFromLeft={() => setMenuVisible(true)}>
-      <ResponsiveContainer
-        padding={false}
-        style={styles.container}
-      >
+      <View style={styles.container}>
         <Header 
           title={t('nav.analytics')} 
           onMenuOpen={() => setMenuVisible(true)}
-        />
-      {/* Clean Header */}
-      <View style={[
-        styles.header,
-        {
-          backgroundColor: colors.background.primary,
-          paddingTop: Platform.OS === 'ios' ? 60 : 40,
-          paddingHorizontal: rSpacing(20),
-          marginBottom: rSpacing(24),
-        }
-      ]}>
-        <View style={[
-          styles.headerContent,
-          {
-            backgroundColor: colors.background.card,
-            borderRadius: rSpacing(20),
-            padding: rSpacing(24),
-            borderWidth: 1,
-            borderColor: colors.utility.borderLight,
+          rightComponent={
+            <TouchableOpacity
+              onPress={handleExport}
+              style={[
+                styles.exportButton,
+                {
+                  backgroundColor: colors.purple.bright + '15',
+                  padding: rSpacing(12),
+                  borderRadius: rSpacing(12),
+                  borderWidth: 1,
+                  borderColor: colors.purple.bright + '30',
+                }
+              ]}
+              disabled={isExporting || isLoading}
+            >
+              <Ionicons
+                name={isExporting ? 'hourglass' : 'download'}
+                size={20}
+                color={colors.purple.bright}
+              />
+            </TouchableOpacity>
           }
-        ]}>
-          <View style={{ flex: 1 }}>
-            <Text style={[
-              styles.headerTitle, 
-              { 
-                color: theme.colors.text.primary,
-                fontSize: rFontSize(28),
-              }
-            ]}>
-              {t('analytics.title')}
-            </Text>
-            <Text style={[
-              styles.headerSubtitle, 
-              { 
-                color: theme.colors.text.secondary,
-                fontSize: rFontSize(16),
-              }
-            ]}>
-              {t('analytics.subtitle')}
-            </Text>
-          </View>
-          <TouchableOpacity
-            onPress={handleExport}
-            style={[
-              styles.exportButton,
-              {
-                backgroundColor: colors.purple.bright + '15',
-                padding: rSpacing(12),
-                borderRadius: rSpacing(12),
-                borderWidth: 1,
-                borderColor: colors.purple.bright + '30',
-              }
-            ]}
-            disabled={isExporting || isLoading}
-          >
-            <Ionicons
-              name={isExporting ? 'hourglass' : 'download'}
-              size={20}
-              color={colors.purple.bright}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
+        />
+        
+        <ResponsiveContainer
+          padding={false}
+          style={styles.scrollableContent}
+        >
 
       {/* Period Selector */}
-      <ResponsiveSection spacing="sm">
+      <ResponsiveSection spacing="lg" style={{ marginTop: rSpacing(24) }}>
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false}
@@ -914,7 +873,14 @@ export const AnalyticsScreen = () => {
             {periods.map((period) => (
               <TouchableOpacity
                 key={period.key}
-                onPress={() => setSelectedPeriod(period.key)}
+                onPress={() => {
+                  setSelectedPeriod(period.key);
+                  if (period.key === 'monthly') {
+                    setSpecificPeriod({ type: 'month', value: new Date().getFullYear() * 100 + new Date().getMonth() });
+                  } else if (period.key === 'yearly') {
+                    setSpecificPeriod({ type: 'year', value: new Date().getFullYear() });
+                  }
+                }}
                 style={[
                   styles.periodButton,
                   selectedPeriod === period.key && styles.periodButtonActive,
@@ -967,6 +933,100 @@ export const AnalyticsScreen = () => {
             ))}
           </View>
         </ScrollView>
+        
+        {/* Specific Period Selector */}
+        {(selectedPeriod === 'monthly' || selectedPeriod === 'yearly') && (
+          <View style={[styles.specificPeriodContainer, { paddingHorizontal: rSpacing(20), marginTop: rSpacing(20) }]}>
+            {selectedPeriod === 'yearly' && (
+              <View style={styles.yearSelector}>
+                <TouchableOpacity
+                  onPress={() => setSpecificPeriod(prev => ({ ...prev, value: prev.value - 1 }))}
+                  style={[styles.periodArrow, { backgroundColor: theme.colors.background.elevated }]}
+                >
+                  <Ionicons name="chevron-back" size={20} color={theme.colors.text.secondary} />
+                </TouchableOpacity>
+                
+                <View style={[styles.periodDisplay, { backgroundColor: theme.colors.background.elevated }]}>
+                  <Text style={[styles.periodDisplayText, { color: theme.colors.text.primary }]}>
+                    {specificPeriod.value}年
+                  </Text>
+                </View>
+                
+                <TouchableOpacity
+                  onPress={() => setSpecificPeriod(prev => ({ ...prev, value: prev.value + 1 }))}
+                  style={[styles.periodArrow, { backgroundColor: theme.colors.background.elevated }]}
+                  disabled={specificPeriod.value >= new Date().getFullYear()}
+                >
+                  <Ionicons 
+                    name="chevron-forward" 
+                    size={20} 
+                    color={specificPeriod.value >= new Date().getFullYear() ? theme.colors.text.disabled : theme.colors.text.secondary} 
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
+            
+            {selectedPeriod === 'monthly' && (
+              <View style={styles.monthSelector}>
+                <TouchableOpacity
+                  onPress={() => {
+                    const currentYear = Math.floor(specificPeriod.value / 100);
+                    const currentMonth = specificPeriod.value % 100;
+                    const newMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+                    const newYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+                    setSpecificPeriod({ type: 'month', value: newYear * 100 + newMonth });
+                  }}
+                  style={[styles.periodArrow, { backgroundColor: theme.colors.background.elevated }]}
+                >
+                  <Ionicons name="chevron-back" size={20} color={theme.colors.text.secondary} />
+                </TouchableOpacity>
+                
+                <View style={[styles.periodDisplay, { backgroundColor: theme.colors.background.elevated }]}>
+                  <Text style={[styles.periodDisplayText, { color: theme.colors.text.primary }]}>
+                    {Math.floor(specificPeriod.value / 100)}年{(specificPeriod.value % 100) + 1}月
+                  </Text>
+                </View>
+                
+                <TouchableOpacity
+                  onPress={() => {
+                    const currentYear = Math.floor(specificPeriod.value / 100);
+                    const currentMonth = specificPeriod.value % 100;
+                    const now = new Date();
+                    const isCurrentOrFuture = currentYear > now.getFullYear() || 
+                      (currentYear === now.getFullYear() && currentMonth >= now.getMonth());
+                    
+                    if (!isCurrentOrFuture) {
+                      const newMonth = currentMonth === 11 ? 0 : currentMonth + 1;
+                      const newYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+                      setSpecificPeriod({ type: 'month', value: newYear * 100 + newMonth });
+                    }
+                  }}
+                  style={[styles.periodArrow, { backgroundColor: theme.colors.background.elevated }]}
+                  disabled={(() => {
+                    const currentYear = Math.floor(specificPeriod.value / 100);
+                    const currentMonth = specificPeriod.value % 100;
+                    const now = new Date();
+                    return currentYear > now.getFullYear() || 
+                      (currentYear === now.getFullYear() && currentMonth >= now.getMonth());
+                  })()}
+                >
+                  <Ionicons 
+                    name="chevron-forward" 
+                    size={20} 
+                    color={(() => {
+                      const currentYear = Math.floor(specificPeriod.value / 100);
+                      const currentMonth = specificPeriod.value % 100;
+                      const now = new Date();
+                      const isDisabled = currentYear > now.getFullYear() || 
+                        (currentYear === now.getFullYear() && currentMonth >= now.getMonth());
+                      return isDisabled ? theme.colors.text.disabled : theme.colors.text.secondary;
+                    })()}
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
       </ResponsiveSection>
 
       {/* Loading State */}
@@ -1069,9 +1129,10 @@ export const AnalyticsScreen = () => {
         </>
       )}
 
-      {/* Bottom spacing */}
-      <View style={{ height: rSpacing(100) }} />
-      </ResponsiveContainer>
+        {/* Bottom spacing */}
+        <View style={{ height: rSpacing(100) }} />
+        </ResponsiveContainer>
+      </View>
       
       <DrawerMenu
         visible={menuVisible}
@@ -1085,22 +1146,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    width: '100%',
-    paddingBottom: 0,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-  },
-  headerTitle: {
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  headerSubtitle: {
-    lineHeight: 24,
+  scrollableContent: {
+    flex: 1,
   },
   exportButton: {
     alignItems: 'center',
@@ -1141,5 +1188,36 @@ const styles = StyleSheet.create({
   },
   rankingsSection: {
     gap: 24,
+  },
+  specificPeriodContainer: {
+    alignItems: 'center',
+  },
+  yearSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  monthSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  periodArrow: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  periodDisplay: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    minWidth: 120,
+    alignItems: 'center',
+  },
+  periodDisplayText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
@@ -43,7 +44,16 @@ const getWeatherOptions = (t: any): Array<{
   { type: 'SNOWY', label: t('record.snowy'), icon: 'snow', color: '#f1faee' },
 ];
 
+interface RecordScreenParams {
+  parkType?: ParkType;
+  date?: string;
+  visitId?: string;
+}
+
 export const RecordScreen = () => {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const params = route.params as RecordScreenParams;
   const { theme } = useTheme();
   const { t } = useLanguage();
   const isDark = theme.mode === 'dark';
@@ -68,19 +78,41 @@ export const RecordScreen = () => {
   const {
     companions,
     createVisit,
+    updateVisit,
+    getVisit,
     createCompanion,
     deleteCompanion,
     isLoading,
   } = useVisits();
 
   // Form state
-  const [selectedDate, setSelectedDate] = useState<string>('');
-  const [selectedPark, setSelectedPark] = useState<ParkType | undefined>();
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    console.log('RecordScreen params:', params);
+    // Check for initialDate parameter as well as date
+    return params?.date || (params as any)?.initialDate || '';
+  });
+  const [selectedPark, setSelectedPark] = useState<ParkType | undefined>(() => {
+    console.log('RecordScreen parkType param:', params?.parkType);
+    return params?.parkType;
+  });
   const [selectedCompanionIds, setSelectedCompanionIds] = useState<string[]>([]);
   const [selectedWeather, setSelectedWeather] = useState<WeatherType | undefined>();
   const [notes, setNotes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
+
+  // Handle params changes (in case user navigates to this screen multiple times with different params)
+  useEffect(() => {
+    if (params?.date && params.date !== selectedDate) {
+      console.log('Updating selectedDate from params:', params.date);
+      setSelectedDate(params.date);
+    }
+    if (params?.parkType && params.parkType !== selectedPark) {
+      console.log('Updating selectedPark from params:', params.parkType);
+      setSelectedPark(params.parkType);
+    }
+  }, [params]);
+  const [editingVisit, setEditingVisit] = useState<Visit | null>(null);
 
   // Animation refs
   const saveButtonScale = useRef(new Animated.Value(1)).current;
@@ -135,6 +167,33 @@ export const RecordScreen = () => {
     setSelectedWeather(prev => prev === weather ? undefined : weather);
   };
 
+  // Load visit data for editing
+  useEffect(() => {
+    const loadEditingVisit = async () => {
+      if (params?.visitId) {
+        try {
+          const visit = await getVisit(params.visitId);
+          if (visit) {
+            setEditingVisit(visit);
+            setSelectedDate(new Date(visit.date).toISOString().split('T')[0]);
+            setSelectedPark(visit.parkType);
+            setSelectedCompanionIds(visit.companionIds);
+            setSelectedWeather(visit.weather);
+            setNotes(visit.notes || '');
+          }
+        } catch (error) {
+          Alert.alert(
+            t('record.error'), 
+            t('record.errorMessage')
+          );
+          navigation.goBack();
+        }
+      }
+    };
+
+    loadEditingVisit();
+  }, [params?.visitId]);
+
   const handleSave = async () => {
     if (!isFormValid) {
       Alert.alert(t('record.incompleteForm'), t('record.selectDateAndPark'));
@@ -158,7 +217,7 @@ export const RecordScreen = () => {
 
     setIsSaving(true);
     try {
-      const visitData: CreateInput<Visit> = {
+      const visitData = {
         date: new Date(selectedDate),
         parkType: selectedPark!,
         companionIds: selectedCompanionIds,
@@ -166,18 +225,39 @@ export const RecordScreen = () => {
         notes: notes.trim() || undefined,
       };
 
-      await createVisit(visitData);
+      let resultVisit: Visit;
       
-      // Reset form
-      setSelectedDate('');
-      setSelectedPark(undefined);
-      setSelectedCompanionIds([]);
-      setSelectedWeather(undefined);
-      setNotes('');
+      if (editingVisit) {
+        // Update existing visit
+        resultVisit = await updateVisit(editingVisit.id, visitData);
+      } else {
+        // Create new visit
+        resultVisit = await createVisit(visitData as CreateInput<Visit>);
+      }
+      
+      // Reset form only for new visits
+      if (!editingVisit) {
+        setSelectedDate('');
+        setSelectedPark(undefined);
+        setSelectedCompanionIds([]);
+        setSelectedWeather(undefined);
+        setNotes('');
+      }
 
-      Alert.alert(t('record.success'), t('record.successMessage'), [
-        { text: t('common.ok'), style: 'default' },
-      ]);
+      // Show success message and navigate back to list
+      Alert.alert(
+        t('record.success'),
+        t('record.successMessage'),
+        [
+          {
+            text: t('common.ok'),
+            onPress: () => {
+              // Navigate to visit list to see all records
+              navigation.navigate('VisitList' as never);
+            }
+          }
+        ]
+      );
     } catch (error) {
       Alert.alert(t('record.error'), t('record.errorMessage'));
     } finally {
@@ -192,7 +272,9 @@ export const RecordScreen = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <Header 
-          title={t('nav.record')} 
+          title={editingVisit ? t('record.editVisit') : t('nav.record')} 
+          showBackButton={editingVisit ? true : false}
+          onBackPress={editingVisit ? () => navigation.goBack() : undefined}
           onMenuOpen={() => setMenuVisible(true)}
         />
         <ScrollView
@@ -293,7 +375,12 @@ export const RecordScreen = () => {
               selectedDate={selectedDate}
               onDateSelect={setSelectedDate}
               minDate={new Date(2020, 0, 1).toISOString().split('T')[0]}
-              maxDate={new Date().toISOString().split('T')[0]}
+              maxDate={(() => {
+                const now = new Date();
+                const jstOffset = 9 * 60; // JST is UTC+9
+                const jstTime = new Date(now.getTime() + (jstOffset * 60 * 1000));
+                return jstTime.toISOString().split('T')[0];
+              })()}
             />
           </View>
 

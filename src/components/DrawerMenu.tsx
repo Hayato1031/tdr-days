@@ -12,6 +12,7 @@ import {
   ScrollView,
   Dimensions,
   Platform,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
@@ -55,21 +56,21 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
       title: t('nav.home'),
       icon: 'home',
       color: colors.purple.bright,
-      description: 'メインダッシュボード',
+      description: language === 'ja' ? 'メインダッシュボード' : 'Main Dashboard',
       onPress: () => {
         onClose();
-        navigation.navigate('Main' as never, { screen: 'Home' } as never);
+        navigation.navigate('Home' as never);
       }
     },
     {
       id: 'visitList',
-      title: '来園記録',
+      title: language === 'ja' ? '来園記録' : 'Visit Records',
       icon: 'list',
       color: colors.purple[500],
-      description: '過去の来園記録を表示',
+      description: language === 'ja' ? '過去の来園記録を表示' : 'View past visit records',
       onPress: () => {
         onClose();
-        navigation.navigate('Main' as never, { screen: 'VisitList' } as never);
+        navigation.navigate('VisitList' as never);
       }
     },
     {
@@ -77,10 +78,10 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
       title: t('nav.record'),
       icon: 'add-circle',
       color: colors.green[500],
-      description: '新しい来園を記録',
+      description: language === 'ja' ? '新しい来園を記録' : 'Record new visit',
       onPress: () => {
         onClose();
-        navigation.navigate('Main' as never, { screen: 'Record' } as never);
+        navigation.navigate('Record' as never);
       }
     },
     {
@@ -88,10 +89,10 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
       title: t('nav.analytics'),
       icon: 'stats-chart',
       color: colors.blue[500],
-      description: 'データ分析と統計',
+      description: language === 'ja' ? 'データ分析と統計' : 'Data analysis & statistics',
       onPress: () => {
         onClose();
-        navigation.navigate('Main' as never, { screen: 'Analytics' } as never);
+        navigation.navigate('Analytics' as never);
       }
     },
     {
@@ -99,13 +100,21 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
       title: t('nav.profile'),
       icon: 'person',
       color: colors.orange[500],
-      description: 'プロフィールと設定',
+      description: language === 'ja' ? 'プロフィールと設定' : 'Profile & settings',
       onPress: () => {
         onClose();
-        navigation.navigate('Main' as never, { screen: 'Profile' } as never);
+        navigation.navigate('Profile' as never);
       }
     },
   ];
+
+  // 今日の日付を日本時間で取得
+  const getTodayInJST = () => {
+    const now = new Date();
+    const jstOffset = 9 * 60; // JST is UTC+9
+    const jstTime = new Date(now.getTime() + (jstOffset * 60 * 1000));
+    return jstTime.toISOString().split('T')[0]; // YYYY-MM-DD format
+  };
 
   const quickActions: MenuItem[] = [
     {
@@ -114,10 +123,15 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
       icon: 'fort-awesome',
       iconLibrary: 'FontAwesome5',
       color: colors.pink[500],
-      description: '来園記録を追加',
+      description: language === 'ja' ? '来園記録を追加' : 'Add visit record',
       onPress: () => {
+        const today = getTodayInJST();
+        console.log('Navigating to Record screen with LAND park and date:', today);
         onClose();
-        navigation.navigate('Main' as never, { screen: 'Record' } as never);
+        navigation.navigate('Record' as never, {
+          parkType: ParkType.LAND,
+          date: today
+        } as never);
       }
     },
     {
@@ -126,10 +140,15 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
       icon: 'globe',
       iconLibrary: 'FontAwesome5',
       color: colors.teal[500],
-      description: '来園記録を追加',
+      description: language === 'ja' ? '来園記録を追加' : 'Add visit record',
       onPress: () => {
+        const today = getTodayInJST();
+        console.log('Navigating to Record screen with SEA park and date:', today);
         onClose();
-        navigation.navigate('Main' as never, { screen: 'Record' } as never);
+        navigation.navigate('Record' as never, {
+          parkType: ParkType.SEA,
+          date: today
+        } as never);
       }
     },
   ];
@@ -216,12 +235,18 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
           {/* Header */}
           <View style={styles.drawerHeader}>
             <View style={styles.appInfo}>
-              <View style={[styles.appIcon, { backgroundColor: colors.purple[500] }]}>
-                <Ionicons name="castle" size={28} color={colors.utility.white} />
+              <View style={styles.appIcon}>
+                <Image 
+                  source={require('../../assets/icon.png')} 
+                  style={styles.appIconImage}
+                  resizeMode="contain"
+                />
               </View>
               <View style={styles.appText}>
                 <Text style={styles.appTitle}>TDR Days</Text>
-                <Text style={styles.appSubtitle}>ディズニー来園記録</Text>
+                <Text style={styles.appSubtitle}>
+                  {language === 'ja' ? 'ディズニー来園記録' : 'Disney Resort Diary'}
+                </Text>
               </View>
             </View>
           </View>
@@ -232,7 +257,9 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
           >
             {/* Main Navigation */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>メインメニュー</Text>
+              <Text style={styles.sectionTitle}>
+                {language === 'ja' ? 'メインメニュー' : 'Main Menu'}
+              </Text>
               {menuItems.map((item) => (
                 <TouchableOpacity
                   key={item.id}
@@ -256,7 +283,9 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
 
             {/* Quick Actions */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>クイックアクション</Text>
+              <Text style={styles.sectionTitle}>
+                {language === 'ja' ? 'クイックアクション' : 'Quick Actions'}
+              </Text>
               {quickActions.map((item) => (
                 <TouchableOpacity
                   key={item.id}
@@ -284,7 +313,9 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
 
             {/* Settings */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>設定</Text>
+              <Text style={styles.sectionTitle}>
+                {language === 'ja' ? '設定' : 'Settings'}
+              </Text>
               
               {/* Language Toggle */}
               <TouchableOpacity
@@ -297,9 +328,11 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ visible, onClose }) => {
                 </View>
                 <View style={styles.menuContent}>
                   <Text style={styles.menuTitle}>
-                    {language === 'ja' ? 'English' : '日本語'}
+                    {language === 'ja' ? 'Language / 言語' : 'Language / 言語'}
                   </Text>
-                  <Text style={styles.menuDescription}>言語を切り替え</Text>
+                  <Text style={styles.menuDescription}>
+                    {language === 'ja' ? '現在: 日本語 → English に変更' : 'Current: English → 日本語 に変更'}
+                  </Text>
                 </View>
               </TouchableOpacity>
             </View>
@@ -359,6 +392,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    overflow: 'hidden',
+  },
+  appIconImage: {
+    width: '100%',
+    height: '100%',
   },
   appText: {
     flex: 1,

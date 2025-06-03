@@ -1,489 +1,355 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  TextInput,
   Animated,
-  Dimensions,
-  ImageBackground,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { colors } from '../styles/colors';
 import { spacing, borderRadius } from '../styles/theme';
 import { ParkArea, LandArea, SeaArea, ParkType } from '../types/models';
 
-const { width: screenWidth } = Dimensions.get('window');
-
 interface AreaPickerProps {
   parkType: ParkType;
-  selectedArea?: ParkArea;
-  onSelect: (area: ParkArea) => void;
+  selectedArea?: ParkArea | '';
+  onAreaSelect?: (area: ParkArea) => void;
+  onSelect?: (area: ParkArea) => void;
   disabled?: boolean;
   style?: any;
 }
 
-interface AreaInfo {
-  area: ParkArea;
-  displayName: string;
-  description: string;
-  color: string;
-  gradient: string[];
-  icon: string;
+interface AreaOption {
+  value: ParkArea;
+  label: string;
   emoji: string;
-  isNew?: boolean;
 }
 
 export const AreaPicker: React.FC<AreaPickerProps> = ({
   parkType,
   selectedArea,
+  onAreaSelect,
   onSelect,
   disabled = false,
   style,
 }) => {
   const { theme } = useTheme();
-  const [expandedArea, setExpandedArea] = useState<ParkArea | null>(null);
-  const scaleAnimations = useRef<Record<string, Animated.Value>>({}).current;
-  const fadeAnimations = useRef<Record<string, Animated.Value>>({}).current;
+  const { language } = useLanguage();
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchText, setSearchText] = useState('');
 
-  // Area configurations with rich metadata
-  const landAreas: AreaInfo[] = [
-    {
-      area: LandArea.WORLD_BAZAAR,
-      displayName: 'World Bazaar',
-      description: 'Victorian charm & shopping',
-      color: colors.blue[500],
-      gradient: [colors.blue[400], colors.blue[600]],
-      icon: 'storefront',
-      emoji: '🏪',
-    },
-    {
-      area: LandArea.ADVENTURELAND,
-      displayName: 'Adventureland',
-      description: 'Tropical adventures await',
-      color: colors.green[500],
-      gradient: [colors.green[400], colors.green[600]],
-      icon: 'compass',
-      emoji: '🌴',
-    },
-    {
-      area: LandArea.WESTERNLAND,
-      displayName: 'Westernland',
-      description: 'Wild west frontier',
-      color: colors.orange[500],
-      gradient: [colors.orange[400], colors.orange[600]],
-      icon: 'trending-up',
-      emoji: '🤠',
-    },
-    {
-      area: LandArea.CRITTER_COUNTRY,
-      displayName: 'Critter Country',
-      description: 'Forest friends & honey',
-      color: colors.amber[500],
-      gradient: [colors.amber[400], colors.amber[600]],
-      icon: 'leaf',
-      emoji: '🐻',
-    },
-    {
-      area: LandArea.FANTASYLAND,
-      displayName: 'Fantasyland',
-      description: 'Where dreams come true',
-      color: colors.pink[500],
-      gradient: [colors.pink[400], colors.pink[600]],
-      icon: 'star',
-      emoji: '🏰',
-      isNew: true,
-    },
-    {
-      area: LandArea.TOONTOWN,
-      displayName: 'Toontown',
-      description: 'Colorful cartoon world',
-      color: colors.purple[500],
-      gradient: [colors.purple[400], colors.purple[600]],
-      icon: 'happy',
-      emoji: '🎭',
-    },
-    {
-      area: LandArea.TOMORROWLAND,
-      displayName: 'Tomorrowland',
-      description: 'Future adventures',
-      color: colors.cyan[500],
-      gradient: [colors.cyan[400], colors.cyan[600]],
-      icon: 'rocket',
-      emoji: '🚀',
-    },
+  // Area translation function
+  const getAreaLabel = (area: ParkArea): string => {
+    if (language === 'ja') {
+      return area;
+    }
+    
+    // English translations
+    switch (area) {
+      // Disneyland areas
+      case LandArea.WORLD_BAZAAR:
+        return 'World Bazaar';
+      case LandArea.ADVENTURELAND:
+        return 'Adventureland';
+      case LandArea.WESTERNLAND:
+        return 'Westernland';
+      case LandArea.CRITTER_COUNTRY:
+        return 'Critter Country';
+      case LandArea.FANTASYLAND:
+        return 'Fantasyland';
+      case LandArea.TOONTOWN:
+        return 'Toontown';
+      case LandArea.TOMORROWLAND:
+        return 'Tomorrowland';
+      
+      // DisneySea areas
+      case SeaArea.MEDITERRANEAN_HARBOR:
+        return 'Mediterranean Harbor';
+      case SeaArea.AMERICAN_WATERFRONT:
+        return 'American Waterfront';
+      case SeaArea.PORT_DISCOVERY:
+        return 'Port Discovery';
+      case SeaArea.LOST_RIVER_DELTA:
+        return 'Lost River Delta';
+      case SeaArea.ARABIAN_COAST:
+        return 'Arabian Coast';
+      case SeaArea.MERMAID_LAGOON:
+        return 'Mermaid Lagoon';
+      case SeaArea.MYSTERIOUS_ISLAND:
+        return 'Mysterious Island';
+      case SeaArea.FANTASY_SPRINGS:
+        return 'Fantasy Springs';
+      
+      default:
+        return area;
+    }
+  };
+
+  // Area options for both parks
+  const landAreas: AreaOption[] = [
+    { value: LandArea.WORLD_BAZAAR, label: getAreaLabel(LandArea.WORLD_BAZAAR), emoji: '🏪' },
+    { value: LandArea.ADVENTURELAND, label: getAreaLabel(LandArea.ADVENTURELAND), emoji: '🌴' },
+    { value: LandArea.WESTERNLAND, label: getAreaLabel(LandArea.WESTERNLAND), emoji: '🤠' },
+    { value: LandArea.CRITTER_COUNTRY, label: getAreaLabel(LandArea.CRITTER_COUNTRY), emoji: '🐻' },
+    { value: LandArea.FANTASYLAND, label: getAreaLabel(LandArea.FANTASYLAND), emoji: '🏰' },
+    { value: LandArea.TOONTOWN, label: getAreaLabel(LandArea.TOONTOWN), emoji: '🎭' },
+    { value: LandArea.TOMORROWLAND, label: getAreaLabel(LandArea.TOMORROWLAND), emoji: '🚀' },
   ];
 
-  const seaAreas: AreaInfo[] = [
-    {
-      area: SeaArea.MEDITERRANEAN_HARBOR,
-      displayName: 'Mediterranean Harbor',
-      description: 'Italian romance & elegance',
-      color: colors.blue[500],
-      gradient: [colors.blue[400], colors.blue[600]],
-      icon: 'boat',
-      emoji: '🏛️',
-    },
-    {
-      area: SeaArea.AMERICAN_WATERFRONT,
-      displayName: 'American Waterfront',
-      description: '1900s New York charm',
-      color: colors.indigo[500],
-      gradient: [colors.indigo[400], colors.indigo[600]],
-      icon: 'business',
-      emoji: '🗽',
-    },
-    {
-      area: SeaArea.PORT_DISCOVERY,
-      displayName: 'Port Discovery',
-      description: 'Scientific exploration',
-      color: colors.teal[500],
-      gradient: [colors.teal[400], colors.teal[600]],
-      icon: 'telescope',
-      emoji: '🔬',
-    },
-    {
-      area: SeaArea.LOST_RIVER_DELTA,
-      displayName: 'Lost River Delta',
-      description: 'Ancient mysteries',
-      color: colors.green[500],
-      gradient: [colors.green[400], colors.green[600]],
-      icon: 'search',
-      emoji: '🏺',
-    },
-    {
-      area: SeaArea.ARABIAN_COAST,
-      displayName: 'Arabian Coast',
-      description: 'Middle Eastern magic',
-      color: colors.orange[500],
-      gradient: [colors.orange[400], colors.orange[600]],
-      icon: 'library',
-      emoji: '🕌',
-    },
-    {
-      area: SeaArea.MERMAID_LAGOON,
-      displayName: 'Mermaid Lagoon',
-      description: 'Underwater kingdom',
-      color: colors.cyan[500],
-      gradient: [colors.cyan[400], colors.cyan[600]],
-      icon: 'water',
-      emoji: '🧜‍♀️',
-    },
-    {
-      area: SeaArea.MYSTERIOUS_ISLAND,
-      displayName: 'Mysterious Island',
-      description: 'Volcanic adventure',
-      color: colors.red[500],
-      gradient: [colors.red[400], colors.red[600]],
-      icon: 'flame',
-      emoji: '🌋',
-    },
-    {
-      area: SeaArea.FANTASY_SPRINGS,
-      displayName: 'Fantasy Springs',
-      description: 'Frozen, Tangled & Peter Pan',
-      color: colors.purple[500],
-      gradient: [colors.purple[400], colors.purple[600]],
-      icon: 'snow',
-      emoji: '❄️',
-      isNew: true,
-    },
+  const seaAreas: AreaOption[] = [
+    { value: SeaArea.MEDITERRANEAN_HARBOR, label: getAreaLabel(SeaArea.MEDITERRANEAN_HARBOR), emoji: '🏛️' },
+    { value: SeaArea.AMERICAN_WATERFRONT, label: getAreaLabel(SeaArea.AMERICAN_WATERFRONT), emoji: '🗽' },
+    { value: SeaArea.PORT_DISCOVERY, label: getAreaLabel(SeaArea.PORT_DISCOVERY), emoji: '🔬' },
+    { value: SeaArea.LOST_RIVER_DELTA, label: getAreaLabel(SeaArea.LOST_RIVER_DELTA), emoji: '🏺' },
+    { value: SeaArea.ARABIAN_COAST, label: getAreaLabel(SeaArea.ARABIAN_COAST), emoji: '🕌' },
+    { value: SeaArea.MERMAID_LAGOON, label: getAreaLabel(SeaArea.MERMAID_LAGOON), emoji: '🧜‍♀️' },
+    { value: SeaArea.MYSTERIOUS_ISLAND, label: getAreaLabel(SeaArea.MYSTERIOUS_ISLAND), emoji: '🌋' },
+    { value: SeaArea.FANTASY_SPRINGS, label: getAreaLabel(SeaArea.FANTASY_SPRINGS), emoji: '❄️' },
   ];
 
   const areas = parkType === ParkType.LAND ? landAreas : seaAreas;
 
-  // Initialize animations
-  useEffect(() => {
-    areas.forEach(area => {
-      if (!scaleAnimations[area.area]) {
-        scaleAnimations[area.area] = new Animated.Value(1);
-      }
-      if (!fadeAnimations[area.area]) {
-        fadeAnimations[area.area] = new Animated.Value(1);
-      }
-    });
-  }, [areas]);
-
-  const handleAreaPress = (areaInfo: AreaInfo) => {
-    if (disabled) return;
-
-    // Animate selection
-    const scaleAnim = scaleAnimations[areaInfo.area];
-    
-    Animated.sequence([
-      Animated.spring(scaleAnim, {
-        toValue: 0.95,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    onSelect(areaInfo.area);
-  };
-
-  const handleAreaLongPress = (areaInfo: AreaInfo) => {
-    setExpandedArea(expandedArea === areaInfo.area ? null : areaInfo.area);
-  };
-
-  const renderAreaCard = (areaInfo: AreaInfo, index: number) => {
-    const isSelected = selectedArea === areaInfo.area;
-    const isExpanded = expandedArea === areaInfo.area;
-    const scaleAnim = scaleAnimations[areaInfo.area] || new Animated.Value(1);
-    const fadeAnim = fadeAnimations[areaInfo.area] || new Animated.Value(1);
-
-    return (
-      <Animated.View
-        key={areaInfo.area}
-        style={[
-          styles.areaCard,
-          {
-            transform: [{ scale: scaleAnim }],
-            opacity: fadeAnim,
-          },
-        ]}
-      >
-        <TouchableOpacity
-          onPress={() => handleAreaPress(areaInfo)}
-          onLongPress={() => handleAreaLongPress(areaInfo)}
-          disabled={disabled}
-          activeOpacity={0.8}
-          style={[
-            styles.areaButton,
-            {
-              opacity: disabled ? 0.6 : 1,
-            },
-          ]}
-        >
-          <LinearGradient
-            colors={isSelected ? areaInfo.gradient : [
-              theme.colors.background.elevated,
-              theme.colors.background.elevated,
-            ]}
-            style={[
-              styles.areaGradient,
-              {
-                borderColor: isSelected ? areaInfo.color : theme.colors.border,
-                borderWidth: isSelected ? 2 : 1,
-              },
-            ]}
-          >
-            {/* Header */}
-            <View style={styles.areaHeader}>
-              <View style={styles.areaIconContainer}>
-                <Text style={styles.areaEmoji}>{areaInfo.emoji}</Text>
-                <Ionicons
-                  name={areaInfo.icon as any}
-                  size={16}
-                  color={isSelected ? 'white' : areaInfo.color}
-                  style={styles.areaIcon}
-                />
-              </View>
-              
-              {areaInfo.isNew && (
-                <View style={[styles.newBadge, { backgroundColor: colors.green[500] }]}>
-                  <Text style={styles.newBadgeText}>NEW</Text>
-                </View>
-              )}
-            </View>
-
-            {/* Content */}
-            <View style={styles.areaContent}>
-              <Text
-                style={[
-                  styles.areaTitle,
-                  {
-                    color: isSelected ? 'white' : theme.colors.text.primary,
-                  },
-                ]}
-                numberOfLines={2}
-              >
-                {areaInfo.displayName}
-              </Text>
-              
-              <Text
-                style={[
-                  styles.areaDescription,
-                  {
-                    color: isSelected ? 'rgba(255, 255, 255, 0.8)' : theme.colors.text.secondary,
-                  },
-                ]}
-                numberOfLines={2}
-              >
-                {areaInfo.description}
-              </Text>
-            </View>
-
-            {/* Selection indicator */}
-            {isSelected && (
-              <View style={styles.selectionIndicator}>
-                <Ionicons
-                  name="checkmark-circle"
-                  size={20}
-                  color="white"
-                />
-              </View>
-            )}
-
-            {/* Expanded content */}
-            {isExpanded && (
-              <Animated.View style={styles.expandedContent}>
-                <BlurView intensity={20} style={styles.expandedBlur}>
-                  <Text style={[styles.expandedText, { color: theme.colors.text.primary }]}>
-                    Tap to select this area for your action
-                  </Text>
-                </BlurView>
-              </Animated.View>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
-      </Animated.View>
+  // Filter areas based on search text
+  const filteredAreas = useMemo(() => {
+    if (!searchText) return areas;
+    return areas.filter(area => 
+      area.label.toLowerCase().includes(searchText.toLowerCase())
     );
+  }, [areas, searchText]);
+
+  const selectedAreaOption = areas.find(area => area.value === selectedArea);
+
+  const handleAreaSelect = (area: ParkArea) => {
+    onSelect?.(area);
+    onAreaSelect?.(area);
+    setIsOpen(false);
+    setSearchText('');
+  };
+
+  const handleToggleOpen = () => {
+    if (disabled) return;
+    setIsOpen(!isOpen);
+    if (!isOpen) {
+      setSearchText('');
+    }
   };
 
   return (
     <View style={[styles.container, style]}>
-      <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>
-          Select Area in {parkType === ParkType.LAND ? 'Disneyland' : 'DisneySea'}
-        </Text>
-        <Text style={[styles.headerSubtitle, { color: theme.colors.text.secondary }]}>
-          Choose the area where your activity takes place
-        </Text>
-      </View>
-
-      <ScrollView
-        style={styles.areasContainer}
-        contentContainerStyle={styles.areasContent}
-        showsVerticalScrollIndicator={false}
+      {/* Dropdown Button */}
+      <TouchableOpacity
+        style={[
+          styles.dropdownButton,
+          {
+            backgroundColor: theme.colors.background.secondary,
+            borderColor: theme.colors.border,
+            opacity: disabled ? 0.6 : 1,
+          }
+        ]}
+        onPress={handleToggleOpen}
+        disabled={disabled}
       >
-        <View style={styles.areasGrid}>
-          {areas.map((areaInfo, index) => renderAreaCard(areaInfo, index))}
+        <View style={styles.dropdownContent}>
+          {selectedAreaOption ? (
+            <View style={styles.selectedContent}>
+              <Text style={styles.selectedEmoji}>{selectedAreaOption.emoji}</Text>
+              <Text style={[styles.selectedText, { color: theme.colors.text.primary }]}>
+                {selectedAreaOption.label}
+              </Text>
+            </View>
+          ) : (
+            <Text style={[styles.placeholderText, { color: theme.colors.text.secondary }]}>
+              {language === 'ja' ? 'エリアを選択してください' : 'Please select an area'}
+            </Text>
+          )}
         </View>
-      </ScrollView>
+        <Ionicons 
+          name={isOpen ? "chevron-up" : "chevron-down"} 
+          size={20} 
+          color={theme.colors.text.secondary} 
+        />
+      </TouchableOpacity>
+
+      {/* Dropdown List */}
+      {isOpen && (
+        <View style={[styles.dropdownList, { backgroundColor: theme.colors.background.card }]}>
+          {/* Search Input */}
+          <View style={[styles.searchContainer, { backgroundColor: theme.colors.background.secondary }]}>
+            <Ionicons name="search" size={16} color={theme.colors.text.secondary} />
+            <TextInput
+              style={[styles.searchInput, { color: theme.colors.text.primary }]}
+              value={searchText}
+              onChangeText={setSearchText}
+              placeholder={language === 'ja' ? 'エリアを検索...' : 'Search areas...'}
+              placeholderTextColor={theme.colors.text.secondary}
+            />
+            {searchText.length > 0 && (
+              <TouchableOpacity
+                onPress={() => setSearchText('')}
+                style={styles.clearButton}
+              >
+                <Ionicons name="close-circle" size={16} color={theme.colors.text.secondary} />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Area Options */}
+          <ScrollView 
+            style={styles.optionsList} 
+            contentContainerStyle={styles.optionsContent}
+            showsVerticalScrollIndicator={true}
+            nestedScrollEnabled={true}
+            keyboardShouldPersistTaps="handled"
+          >
+            {filteredAreas.map((area, index) => {
+              const isSelected = selectedArea === area.value;
+              return (
+                <TouchableOpacity
+                  key={area.value}
+                  style={[
+                    styles.optionItem,
+                    {
+                      backgroundColor: isSelected 
+                        ? colors.blue[500] + '20'
+                        : 'transparent',
+                    }
+                  ]}
+                  onPress={() => handleAreaSelect(area.value)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.optionEmoji}>{area.emoji}</Text>
+                  <Text style={[
+                    styles.optionText,
+                    { 
+                      color: isSelected ? colors.blue[500] : theme.colors.text.primary,
+                      fontWeight: isSelected ? '600' : '400'
+                    }
+                  ]}>
+                    {area.label}
+                  </Text>
+                  {isSelected && (
+                    <Ionicons name="checkmark" size={16} color={colors.blue[500]} />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+            
+            {filteredAreas.length === 0 && (
+              <View style={styles.noResults}>
+                <Text style={[styles.noResultsText, { color: theme.colors.text.secondary }]}>
+                  {language === 'ja' ? '検索結果が見つかりません' : 'No search results found'}
+                </Text>
+              </View>
+            )}
+          </ScrollView>
+        </View>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3],
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: spacing[1],
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  areasContainer: {
-    flex: 1,
-  },
-  areasContent: {
-    padding: spacing[4],
-  },
-  areasGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  areaCard: {
-    width: (screenWidth - spacing[4] * 2 - spacing[3]) / 2,
-    marginBottom: spacing[3],
-  },
-  areaButton: {
-    borderRadius: borderRadius.xl,
-    overflow: 'hidden',
-  },
-  areaGradient: {
     position: 'relative',
-    minHeight: 120,
-    padding: spacing[3],
-    borderRadius: borderRadius.xl,
-    justifyContent: 'space-between',
   },
-  areaHeader: {
+  dropdownButton: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: spacing[2],
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[3],
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    minHeight: 48,
   },
-  areaIconContainer: {
+  dropdownContent: {
+    flex: 1,
+  },
+  selectedContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  areaEmoji: {
-    fontSize: 20,
-    marginRight: spacing[1],
+  selectedEmoji: {
+    fontSize: 18,
+    marginRight: spacing[2],
   },
-  areaIcon: {
-    opacity: 0.8,
-  },
-  newBadge: {
-    paddingHorizontal: spacing[1],
-    paddingVertical: 2,
-    borderRadius: borderRadius.sm,
-  },
-  newBadgeText: {
-    color: 'white',
-    fontSize: 9,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  areaContent: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  areaTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    marginBottom: spacing[1],
-    lineHeight: 18,
-  },
-  areaDescription: {
-    fontSize: 11,
+  selectedText: {
+    fontSize: 16,
     fontWeight: '500',
-    lineHeight: 14,
   },
-  selectionIndicator: {
-    position: 'absolute',
-    top: spacing[2],
-    right: spacing[2],
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 15,
-    padding: 2,
+  placeholderText: {
+    fontSize: 16,
   },
-  expandedContent: {
+  dropdownList: {
     position: 'absolute',
-    bottom: 0,
+    top: '100%',
     left: 0,
     right: 0,
-    borderBottomLeftRadius: borderRadius.xl,
-    borderBottomRightRadius: borderRadius.xl,
-    overflow: 'hidden',
+    zIndex: 1000,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+    maxHeight: 280,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  expandedBlur: {
-    padding: spacing[2],
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
   },
-  expandedText: {
-    fontSize: 11,
-    fontWeight: '500',
-    textAlign: 'center',
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    marginLeft: spacing[2],
+    paddingVertical: spacing[1],
+  },
+  clearButton: {
+    padding: spacing[1],
+  },
+  optionsList: {
+    flex: 1,
+    maxHeight: 200,
+  },
+  optionsContent: {
+    paddingBottom: spacing[2],
+  },
+  optionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[3],
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  optionEmoji: {
+    fontSize: 16,
+    marginRight: spacing[2],
+    width: 20,
+  },
+  optionText: {
+    fontSize: 15,
+    flex: 1,
+  },
+  noResults: {
+    paddingVertical: spacing[4],
+    alignItems: 'center',
+  },
+  noResultsText: {
+    fontSize: 14,
   },
 });

@@ -7,11 +7,14 @@ import {
   StyleSheet,
   RefreshControl,
   SectionList,
+  Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useVisits } from '../hooks/useVisits';
 import { Visit, ParkType } from '../types/models';
 import { colors } from '../styles/colors';
@@ -28,9 +31,11 @@ interface VisitSection {
 export const VisitListScreen = () => {
   const navigation = useNavigation();
   const { theme } = useTheme();
+  const { language } = useLanguage();
   const { visits, isLoading, refreshData } = useVisits();
   const [refreshing, setRefreshing] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -38,33 +43,52 @@ export const VisitListScreen = () => {
     setRefreshing(false);
   };
 
-  const getRelativeTimeLabel = (date: Date): string => {
+  // 日本時間での今日の日付を取得
+  const getTodayInJST = () => {
     const now = new Date();
-    const visitDate = new Date(date);
-    const diffInDays = Math.floor((now.getTime() - visitDate.getTime()) / (1000 * 60 * 60 * 24));
+    const jstOffset = 9 * 60; // JST is UTC+9
+    const jstTime = new Date(now.getTime() + (jstOffset * 60 * 1000));
+    return jstTime.toISOString().split('T')[0]; // YYYY-MM-DD format
+  };
 
-    if (diffInDays === 0) return '今日';
-    if (diffInDays === 1) return '昨日';
-    if (diffInDays <= 7) return '1週間以内';
-    if (diffInDays <= 30) return '1ヶ月以内';
-    if (diffInDays <= 90) return '3ヶ月以内';
-    if (diffInDays <= 180) return '6ヶ月以内';
-    if (diffInDays <= 365) return '1年以内';
-    return '1年以上前';
+  // 日本時間での日付文字列を取得
+  const getDateStringInJST = (date: Date): string => {
+    const visitDate = new Date(date);
+    const jstOffset = 9 * 60; // JST is UTC+9
+    const jstTime = new Date(visitDate.getTime() + (jstOffset * 60 * 1000));
+    return jstTime.toISOString().split('T')[0]; // YYYY-MM-DD format
+  };
+
+  const getRelativeTimeLabel = (date: Date): string => {
+    const todayJST = getTodayInJST();
+    const visitDateJST = getDateStringInJST(date);
+    
+    // 日付文字列での比較
+    const today = new Date(todayJST);
+    const visitDate = new Date(visitDateJST);
+    const diffInDays = Math.floor((today.getTime() - visitDate.getTime()) / (1000 * 60 * 60 * 24));
+
+
+    if (diffInDays === 0) return language === 'ja' ? '今日' : 'Today';
+    if (diffInDays === 1) return language === 'ja' ? '昨日' : 'Yesterday';
+    if (diffInDays <= 7) return language === 'ja' ? '1週間以内' : 'Within a week';
+    if (diffInDays <= 30) return language === 'ja' ? '1ヶ月以内' : 'Within a month';
+    if (diffInDays <= 90) return language === 'ja' ? '3ヶ月以内' : 'Within 3 months';
+    if (diffInDays <= 180) return language === 'ja' ? '6ヶ月以内' : 'Within 6 months';
+    if (diffInDays <= 365) return language === 'ja' ? '1年以内' : 'Within a year';
+    return language === 'ja' ? '1年以上前' : 'Over a year ago';
   };
 
   const getSectionOrder = (title: string): number => {
-    const order: { [key: string]: number } = {
-      '今日': 1,
-      '昨日': 2,
-      '1週間以内': 3,
-      '1ヶ月以内': 4,
-      '3ヶ月以内': 5,
-      '6ヶ月以内': 6,
-      '1年以内': 7,
-      '1年以上前': 8,
+    const orderJa: { [key: string]: number } = {
+      '今日': 1, '昨日': 2, '1週間以内': 3, '1ヶ月以内': 4,
+      '3ヶ月以内': 5, '6ヶ月以内': 6, '1年以内': 7, '1年以上前': 8,
     };
-    return order[title] || 999;
+    const orderEn: { [key: string]: number } = {
+      'Today': 1, 'Yesterday': 2, 'Within a week': 3, 'Within a month': 4,
+      'Within 3 months': 5, 'Within 6 months': 6, 'Within a year': 7, 'Over a year ago': 8,
+    };
+    return (language === 'ja' ? orderJa[title] : orderEn[title]) || 999;
   };
 
   const visitSections: VisitSection[] = useMemo(() => {
@@ -88,12 +112,21 @@ export const VisitListScreen = () => {
   }, [visits]);
 
   const formatDate = (date: Date): string => {
-    return new Date(date).toLocaleDateString('ja-JP', {
+    const locale = language === 'ja' ? 'ja-JP' : 'en-US';
+    return new Date(date).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
       weekday: 'short'
     });
+  };
+
+  const getParkName = (parkType: ParkType): string => {
+    if (language === 'ja') {
+      return parkType === ParkType.LAND ? 'ディズニーランド' : 'ディズニーシー';
+    } else {
+      return parkType === ParkType.LAND ? 'Disneyland' : 'DisneySea';
+    }
   };
 
   const getParkIcon = (parkType: ParkType): string => {
@@ -141,7 +174,7 @@ export const VisitListScreen = () => {
                 )}
               </View>
               <Text style={[styles.parkName, { color: theme.colors.text.primary }]}>
-                {item.parkType === ParkType.LAND ? 'ディズニーランド' : 'ディズニーシー'}
+                {getParkName(item.parkType)}
               </Text>
             </View>
             <Text style={[styles.visitDate, { color: theme.colors.text.secondary }]}>
@@ -155,21 +188,13 @@ export const VisitListScreen = () => {
           />
         </View>
 
-        {item.notes && (
-          <Text 
-            style={[styles.visitNotes, { color: theme.colors.text.secondary }]}
-            numberOfLines={2}
-          >
-            {item.notes}
-          </Text>
-        )}
 
         <View style={styles.visitStats}>
           {item.actionCount !== undefined && (
             <View style={styles.statItem}>
               <Ionicons name="list" size={14} color={theme.colors.text.secondary} />
               <Text style={[styles.statText, { color: theme.colors.text.secondary }]}>
-                {item.actionCount}件のアクション
+                {language === 'ja' ? `${item.actionCount}件のアクション` : `${item.actionCount} actions`}
               </Text>
             </View>
           )}
@@ -177,7 +202,7 @@ export const VisitListScreen = () => {
             <View style={styles.statItem}>
               <Ionicons name="image" size={14} color={theme.colors.text.secondary} />
               <Text style={[styles.statText, { color: theme.colors.text.secondary }]}>
-                {item.totalPhotoCount}枚の写真
+                {language === 'ja' ? `${item.totalPhotoCount}枚の写真` : `${item.totalPhotoCount} photos`}
               </Text>
             </View>
           )}
@@ -185,10 +210,10 @@ export const VisitListScreen = () => {
             <View style={styles.statItem}>
               <Ionicons name="time" size={14} color={theme.colors.text.secondary} />
               <Text style={[styles.statText, { color: theme.colors.text.secondary }]}>
-                {new Date(item.startTime).toLocaleTimeString('ja-JP', { 
+                {new Date(item.startTime).toLocaleTimeString(language === 'ja' ? 'ja-JP' : 'en-US', { 
                   hour: '2-digit', 
                   minute: '2-digit' 
-                })} - {new Date(item.endTime).toLocaleTimeString('ja-JP', { 
+                })} - {new Date(item.endTime).toLocaleTimeString(language === 'ja' ? 'ja-JP' : 'en-US', { 
                   hour: '2-digit', 
                   minute: '2-digit' 
                 })}
@@ -213,7 +238,7 @@ export const VisitListScreen = () => {
           {section.title}
         </Text>
         <Text style={[styles.sectionCount, { color: theme.colors.text.secondary }]}>
-          {section.data.length}件
+          {language === 'ja' ? `${section.data.length}件` : `${section.data.length} records`}
         </Text>
       </LinearGradient>
     </View>
@@ -221,48 +246,43 @@ export const VisitListScreen = () => {
 
   if (isLoading && visits.length === 0) {
     return (
-      <SwipeableScreen onSwipeFromLeft={() => setMenuVisible(true)}>
-        <View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
-          <Header 
-            title="来園記録" 
-            onMenuOpen={() => setMenuVisible(true)}
-          />
-          <View style={styles.loadingContainer}>
-            <Text style={[styles.loadingText, { color: theme.colors.text.secondary }]}>
-              読み込み中...
-            </Text>
-          </View>
-        </View>
-        
-        <DrawerMenu
-          visible={menuVisible}
-          onClose={() => setMenuVisible(false)}
+      <View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
+        <Header 
+          title={language === 'ja' ? '来園記録' : 'Visit Records'} 
+          onMenuOpen={() => setMenuVisible(true)}
         />
-      </SwipeableScreen>
+        <View style={styles.loadingContainer}>
+          <Text style={[styles.loadingText, { color: theme.colors.text.secondary }]}>
+            {language === 'ja' ? '読み込み中...' : 'Loading...'}
+          </Text>
+        </View>
+      </View>
     );
   }
 
   if (visits.length === 0) {
     return (
-      <SwipeableScreen onSwipeFromLeft={() => setMenuVisible(true)}>
-        <View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
-          <Header 
-            title="来園記録" 
-            onMenuOpen={() => setMenuVisible(true)}
-          />
+      <View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
+        <Header 
+          title={language === 'ja' ? '来園記録' : 'Visit Records'} 
+          onMenuOpen={() => setMenuVisible(true)}
+        />
         <View style={styles.emptyContainer}>
           <Ionicons name="calendar-outline" size={64} color={theme.colors.text.secondary} />
           <Text style={[styles.emptyTitle, { color: theme.colors.text.primary }]}>
-            まだ来園記録がありません
+            {language === 'ja' ? 'まだ来園記録がありません' : 'No visit records yet'}
           </Text>
           <Text style={[styles.emptySubtitle, { color: theme.colors.text.secondary }]}>
-            最初の来園記録を作成しましょう
+            {language === 'ja' ? '最初の来園記録を作成しましょう' : "Let's create your first visit record"}
           </Text>
           <TouchableOpacity
             style={styles.createButton}
             onPress={() => {
-              // Navigate to main tabs and then record screen
-              navigation.navigate('Main' as never);
+              // Record画面に遷移して今日の日付を設定
+              const today = new Date();
+              (navigation as any).navigate('Record', {
+                initialDate: today.toISOString().split('T')[0]
+              });
             }}
           >
             <LinearGradient
@@ -270,25 +290,21 @@ export const VisitListScreen = () => {
               style={styles.createButtonGradient}
             >
               <Ionicons name="add" size={20} color={colors.utility.white} />
-              <Text style={styles.createButtonText}>新しい記録を作成</Text>
+              <Text style={styles.createButtonText}>
+                {language === 'ja' ? '新しい記録を作成' : 'Create New Record'}
+              </Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
-        </View>
-        
-        <DrawerMenu
-          visible={menuVisible}
-          onClose={() => setMenuVisible(false)}
-        />
-      </SwipeableScreen>
+      </View>
     );
   }
 
   return (
     <SwipeableScreen onSwipeFromLeft={() => setMenuVisible(true)}>
-      <View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
+      <View style={{ flex: 1, backgroundColor: theme.colors.background.primary }}>
         <Header 
-          title="来園記録" 
+          title={language === 'ja' ? '来園記録' : 'Visit Records'} 
           onMenuOpen={() => setMenuVisible(true)}
         />
         <SectionList
@@ -296,7 +312,11 @@ export const VisitListScreen = () => {
         renderItem={renderVisitItem}
         renderSectionHeader={renderSectionHeader}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ 
+          paddingHorizontal: spacing[4], 
+          paddingBottom: (Platform.OS === 'ios' ? 65 : 60) + insets.bottom + 20 
+        }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -304,9 +324,9 @@ export const VisitListScreen = () => {
             tintColor={colors.purple[500]}
           />
         }
-        showsVerticalScrollIndicator={false}
-        stickySectionHeadersEnabled={true}
-        />
+        showsVerticalScrollIndicator={true}
+        scrollEnabled={true}
+      />
       </View>
       
       <DrawerMenu
@@ -319,6 +339,9 @@ export const VisitListScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  sectionList: {
     flex: 1,
   },
   loadingContainer: {
@@ -422,11 +445,6 @@ const styles = StyleSheet.create({
   },
   visitDate: {
     fontSize: 14,
-  },
-  visitNotes: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: spacing[3],
   },
   visitStats: {
     flexDirection: 'row',

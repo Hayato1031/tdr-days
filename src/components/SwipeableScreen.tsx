@@ -18,11 +18,16 @@ export const SwipeableScreen: React.FC<SwipeableScreenProps> = ({
 }) => {
   const panResponder = useRef(
     PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: (evt, gestureState) => {
-        const { pageX, dx } = gestureState;
-        // 左端からのスワイプかつ右方向への移動の場合のみ反応
-        return pageX <= edgeWidth && dx > 10;
+        const { pageX, dx, dy } = gestureState;
+        // より厳密な条件：左端から開始、水平移動優先、十分な水平移動距離
+        return pageX <= edgeWidth && 
+               dx > 20 && 
+               Math.abs(dx) > Math.abs(dy) * 2 &&
+               Math.abs(dy) < 30;
       },
+      onPanResponderTerminationRequest: () => true, // 他のコンポーネントがコントロールを要求した場合は許可
       onPanResponderGrant: () => {
         // タッチ開始時
       },
@@ -30,9 +35,9 @@ export const SwipeableScreen: React.FC<SwipeableScreenProps> = ({
         // 移動中
       },
       onPanResponderRelease: (evt, gestureState) => {
-        const { dx, vx } = gestureState;
-        // 右にスワイプした場合、または速度が十分な場合
-        if (dx > swipeThreshold || vx > 0.5) {
+        const { dx, vx, pageX } = gestureState;
+        // より厳密な条件で実行
+        if ((dx > swipeThreshold || vx > 0.7) && pageX <= edgeWidth) {
           onSwipeFromLeft?.();
         }
       },
@@ -40,7 +45,8 @@ export const SwipeableScreen: React.FC<SwipeableScreenProps> = ({
   ).current;
 
   return (
-    <View style={{ flex: 1 }} {...panResponder.panHandlers}>
+    <View style={{ flex: 1 }}>
+      <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: edgeWidth, zIndex: 1 }} {...panResponder.panHandlers} />
       {children}
     </View>
   );

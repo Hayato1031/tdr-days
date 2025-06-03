@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { colors } from '../styles/colors';
 import { spacing, borderRadius } from '../styles/theme';
 import { Companion } from '../types/models';
@@ -37,6 +38,7 @@ export const CompanionManager: React.FC<CompanionManagerProps> = ({
   isCreating = false,
 }) => {
   const { theme } = useTheme();
+  const { language } = useLanguage();
   const isDark = theme.mode === 'dark';
   
   const [showAddForm, setShowAddForm] = useState(false);
@@ -77,7 +79,10 @@ export const CompanionManager: React.FC<CompanionManagerProps> = ({
 
   const handleAddCompanion = async () => {
     if (!newCompanionName.trim()) {
-      Alert.alert('Error', 'Please enter a companion name');
+      Alert.alert(
+        language === 'ja' ? 'エラー' : 'Error',
+        language === 'ja' ? '同行者の名前を入力してください' : 'Please enter a companion name'
+      );
       return;
     }
 
@@ -87,7 +92,10 @@ export const CompanionManager: React.FC<CompanionManagerProps> = ({
       setNewCompanionName('');
       toggleAddForm();
     } catch (error) {
-      Alert.alert('Error', 'Failed to add companion');
+      Alert.alert(
+        language === 'ja' ? 'エラー' : 'Error',
+        language === 'ja' ? '同行者の追加に失敗しました' : 'Failed to add companion'
+      );
     } finally {
       setIsAdding(false);
     }
@@ -283,7 +291,7 @@ export const CompanionManager: React.FC<CompanionManagerProps> = ({
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>
-          一緒に行く人は？
+          {language === 'ja' ? '一緒に行く人は？' : 'Who are you going with?'}
         </Text>
         <TouchableOpacity
           onPress={toggleAddForm}
@@ -350,7 +358,7 @@ export const CompanionManager: React.FC<CompanionManagerProps> = ({
                         : 'rgba(0, 0, 0, 0.05)',
                     },
                   ]}
-                  placeholder="一緒に行く人の名前を入力"
+                  placeholder={language === 'ja' ? '一緒に行く人の名前を入力' : 'Enter companion name'}
                   placeholderTextColor={theme.colors.text.secondary}
                   value={newCompanionName}
                   onChangeText={setNewCompanionName}
@@ -375,7 +383,7 @@ export const CompanionManager: React.FC<CompanionManagerProps> = ({
                         { color: theme.colors.text.secondary },
                       ]}
                     >
-                      キャンセル
+                      {language === 'ja' ? 'キャンセル' : 'Cancel'}
                     </Text>
                   </TouchableOpacity>
                   
@@ -397,7 +405,10 @@ export const CompanionManager: React.FC<CompanionManagerProps> = ({
                         { color: colors.utility.white },
                       ]}
                     >
-                      {isAdding ? '追加中...' : '追加'}
+                      {isAdding 
+                        ? (language === 'ja' ? '追加中...' : 'Adding...') 
+                        : (language === 'ja' ? '追加' : 'Add')
+                      }
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -430,7 +441,7 @@ export const CompanionManager: React.FC<CompanionManagerProps> = ({
               { color: theme.colors.text.secondary },
             ]}
           >
-            同行者がまだいません
+            {language === 'ja' ? '同行者がまだいません' : 'No companions yet'}
           </Text>
           <Text
             style={[
@@ -438,7 +449,7 @@ export const CompanionManager: React.FC<CompanionManagerProps> = ({
               { color: theme.colors.text.secondary },
             ]}
           >
-            一緒に行った友達や家族を追加しましょう
+            {language === 'ja' ? '一緒に行った友達や家族を追加しましょう' : 'Add friends or family members you went with'}
           </Text>
         </View>
       )}

@@ -44,7 +44,7 @@ import {
   ParkType,
 } from '../types/models';
 
-const { width, height } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface ExpandedVisit {
   visitId: string;
@@ -52,10 +52,17 @@ interface ExpandedVisit {
 }
 
 // Floating Magic Card Component
-const MagicCard = ({ icon, title, subtitle, value, color, onPress, delay = 0 }: any) => {
+const MagicCard = ({ icon, title, subtitle, value, color, onPress, delay = 0, responsive }: any) => {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [scaleAnim] = useState(new Animated.Value(0.8));
   const [floatAnim] = useState(new Animated.Value(0));
+  
+  // Calculate responsive dimensions for proper 2x2 grid layout
+  const screenWidth = responsive?.dimensions?.width || 375;
+  const containerPadding = 32; // 16px on each side
+  const cardSpacing = 12; // Gap between cards
+  const availableWidth = screenWidth - containerPadding - cardSpacing;
+  const cardWidth = (availableWidth / 2) - 4; // Exact half width minus small margin
 
   useEffect(() => {
     // Entrance animation
@@ -114,20 +121,27 @@ const MagicCard = ({ icon, title, subtitle, value, color, onPress, delay = 0 }: 
     >
       <TouchableOpacity
         onPress={onPress}
-        style={styles.magicCard}
+        style={[styles.magicCard, { 
+          width: '100%',
+          height: 120,
+          marginHorizontal: 0,
+          marginBottom: 0,
+        }]}
         activeOpacity={0.8}
       >
         <LinearGradient
-          colors={[`${color}20`, `${color}10`]}
-          style={styles.magicCardGradient}
+          colors={[`${color}15`, `${color}08`, `${color}15`]}
+          style={[styles.magicCardGradient, { width: '100%', height: '100%' }]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
         >
-          <BlurView intensity={20} style={styles.magicCardBlur}>
+          <BlurView intensity={25} style={styles.magicCardBlur}>
             <View style={[styles.magicCardIcon, { backgroundColor: `${color}15` }]}>
               {icon}
             </View>
-            <Text style={[styles.magicCardValue, { color }]}>{value}</Text>
-            <Text style={styles.magicCardTitle}>{title}</Text>
-            <Text style={styles.magicCardSubtitle}>{subtitle}</Text>
+            <Text style={[styles.magicCardValue, { color }]} numberOfLines={1}>{value}</Text>
+            <Text style={styles.magicCardTitle} numberOfLines={1}>{title}</Text>
+            <Text style={styles.magicCardSubtitle} numberOfLines={1}>{subtitle}</Text>
           </BlurView>
         </LinearGradient>
       </TouchableOpacity>
@@ -135,113 +149,12 @@ const MagicCard = ({ icon, title, subtitle, value, color, onPress, delay = 0 }: 
   );
 };
 
-// Park Selection Button Component
-const ParkButton = ({ parkType, icon, name, description, color, onPress, isSelected }: any) => {
-  const [pressAnim] = useState(new Animated.Value(1));
 
-  const handlePressIn = () => {
-    Animated.spring(pressAnim, {
-      toValue: 0.97,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.spring(pressAnim, {
-      toValue: 1,
-      tension: 100,
-      friction: 8,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  return (
-    <Animated.View style={{ transform: [{ scale: pressAnim }] }}>
-      <TouchableOpacity
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        style={[
-          styles.parkButton,
-          isSelected && styles.parkButtonSelected,
-        ]}
-        activeOpacity={0.8}
-      >
-        <View style={[
-          styles.parkButtonContainer,
-          {
-            backgroundColor: isSelected ? color : colors.background.card,
-            borderColor: isSelected ? color : colors.utility.border,
-          }
-        ]}>
-          <View style={styles.parkButtonContent}>
-            <View style={styles.parkButtonLeft}>
-              <View style={[
-                styles.parkIconContainer, 
-                { 
-                  backgroundColor: isSelected ? 'rgba(255, 255, 255, 0.2)' : `${color}15`,
-                }
-              ]}>
-                {React.cloneElement(icon, {
-                  color: isSelected ? colors.utility.white : color,
-                })}
-              </View>
-            </View>
-            <View style={styles.parkButtonRight}>
-              <Text style={[
-                styles.parkButtonName,
-                { 
-                  color: isSelected ? colors.utility.white : colors.text.primary,
-                }
-              ]} numberOfLines={1}>
-                {name}
-              </Text>
-              <Text style={[
-                styles.parkButtonDescription,
-                { 
-                  color: isSelected ? 'rgba(255, 255, 255, 0.9)' : colors.text.secondary,
-                }
-              ]} numberOfLines={2}>
-                {description}
-              </Text>
-            </View>
-            {isSelected && (
-              <View style={styles.selectedIndicator}>
-                <Ionicons name="checkmark-circle" size={24} color={colors.utility.white} />
-              </View>
-            )}
-          </View>
-        </View>
-      </TouchableOpacity>
-    </Animated.View>
-  );
-};
-
-// Quick Action Button Component
-const QuickActionButton = ({ icon, label, onPress, color }: any) => {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={styles.quickActionButton}
-      activeOpacity={0.8}
-    >
-      <LinearGradient
-        colors={[`${color}20`, `${color}10`]}
-        style={styles.quickActionGradient}
-      >
-        <View style={[styles.quickActionIcon, { backgroundColor: `${color}15` }]}>
-          {icon}
-        </View>
-        <Text style={[styles.quickActionLabel, { color }]}>{label}</Text>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
-};
 
 export const HomeScreen = () => {
   const navigation = useNavigation();
   const { theme } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const isDark = theme?.mode === 'dark';
   const [menuVisible, setMenuVisible] = useState(false);
   const responsive = useResponsive();
@@ -251,7 +164,9 @@ export const HomeScreen = () => {
     rSpacing, 
     rFontSize,
     isBreakpoint,
-    layoutConfig 
+    layoutConfig,
+    gridConfig,
+    responsive: responsiveValue 
   } = responsive || {};
   
   // Safe fallback values
@@ -280,7 +195,6 @@ export const HomeScreen = () => {
   } = useActions() || {};
   
   // State
-  const [selectedPark, setSelectedPark] = useState<ParkType | null>(null);
   const [headerAnimation] = useState(new Animated.Value(0));
   const [refreshing, setRefreshing] = useState(false);
   const [floatingAnimation] = useState(new Animated.Value(0));
@@ -320,10 +234,17 @@ export const HomeScreen = () => {
     const seaVisits = visits.filter(v => v.parkType === ParkType.SEA).length;
     const totalActions = visits.reduce((sum, visit) => sum + (visit.actionCount || 0), 0);
     const recentVisits = visits.filter(v => {
+      // 日本時間での30日前の日付を計算
+      const now = new Date();
+      const jstOffset = 9 * 60; // JST is UTC+9
+      const nowJST = new Date(now.getTime() + (jstOffset * 60 * 1000));
+      const thirtyDaysAgoJST = new Date(nowJST);
+      thirtyDaysAgoJST.setDate(thirtyDaysAgoJST.getDate() - 30);
+      
       const visitDate = new Date(v.date);
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      return visitDate >= thirtyDaysAgo;
+      const visitDateJST = new Date(visitDate.getTime() + (jstOffset * 60 * 1000));
+      
+      return visitDateJST >= thirtyDaysAgoJST;
     }).length;
     
     return { totalVisits, landVisits, seaVisits, totalActions, recentVisits };
@@ -482,119 +403,69 @@ export const HomeScreen = () => {
                 </Text>
               </View>
 
-              {/* Enhanced Stats Cards with Animations */}
-              <View style={styles.statsCardsGrid}>
-                <MagicCard
-                  icon={<Ionicons name="calendar" size={24} color={colors.purple.bright} />}
-                  title={t('home.totalVisits')}
-                  subtitle={t('home.allTime')}
-                  value={getVisitStats.totalVisits}
-                  color={colors.purple.bright}
-                  delay={100}
-                />
+              {/* Enhanced Stats Cards with Animations - 2x2 Grid */}
+              <View style={[styles.statsCardsGrid, {
+                paddingHorizontal: 16,
+              }]}>
+                <View style={styles.statsCardContainer}>
+                  <MagicCard
+                    icon={<Ionicons name="calendar" size={22} color={colors.purple.bright} />}
+                    title={t('home.totalVisits')}
+                    subtitle={t('home.allTime')}
+                    value={getVisitStats.totalVisits}
+                    color={colors.purple.bright}
+                    delay={100}
+                    responsive={responsive}
+                  />
+                </View>
                 
-                <MagicCard
-                  icon={<Ionicons name="flash" size={24} color={colors.blue[500]} />}
-                  title={t('home.activities')}
-                  subtitle={t('home.logged')}
-                  value={getVisitStats.totalActions}
-                  color={colors.blue[500]}
-                  delay={200}
-                />
+                <View style={styles.statsCardContainer}>
+                  <MagicCard
+                    icon={<Ionicons name="flash" size={22} color={colors.blue[500]} />}
+                    title={t('home.activities')}
+                    subtitle={t('home.logged')}
+                    value={getVisitStats.totalActions}
+                    color={colors.blue[500]}
+                    delay={200}
+                    responsive={responsive}
+                  />
+                </View>
                 
-                <MagicCard
-                  icon={<FontAwesome5 name="fort-awesome" size={20} color={colors.pink[500]} />}
-                  title={t('home.disneyland')}
-                  subtitle={t('home.visits')}
-                  value={getVisitStats.landVisits}
-                  color={colors.pink[500]}
-                  delay={300}
-                />
+                <View style={styles.statsCardContainer}>
+                  <MagicCard
+                    icon={<FontAwesome5 name="fort-awesome" size={20} color={colors.pink[500]} />}
+                    title={t('home.disneylandShort')}
+                    subtitle=""
+                    value={`${getVisitStats.landVisits}${t('home.visits')}`}
+                    color={colors.pink[500]}
+                    delay={300}
+                    responsive={responsive}
+                  />
+                </View>
                 
-                <MagicCard
-                  icon={<FontAwesome5 name="globe" size={20} color={colors.teal[500]} />}
-                  title={t('home.disneysea')}
-                  subtitle={t('home.visits')}
-                  value={getVisitStats.seaVisits}
-                  color={colors.teal[500]}
-                  delay={400}
-                />
+                <View style={styles.statsCardContainer}>
+                  <MagicCard
+                    icon={<FontAwesome5 name="globe" size={20} color={colors.teal[500]} />}
+                    title={t('home.disneyseaShort')}
+                    subtitle=""
+                    value={`${getVisitStats.seaVisits}${t('home.visits')}`}
+                    color={colors.teal[500]}
+                    delay={400}
+                    responsive={responsive}
+                  />
+                </View>
               </View>
             </View>
           </LinearGradient>
         </Animated.View>
 
-        {/* Park Selection Section */}
-        <View style={styles.parkSelectionSection}>
-          <Text style={[styles.sectionTitle, { color: theme?.colors?.text?.primary || '#000' }]}>
-            {t('home.chooseAdventure')}
-          </Text>
-          <Text style={[styles.sectionSubtitle, { color: theme?.colors?.text?.secondary || '#666' }]}>
-            {t('home.selectPark')}
-          </Text>
-          
-          <View style={styles.parkButtonsContainer}>
-            <ParkButton
-              parkType={ParkType.LAND}
-              icon={<FontAwesome5 name="fort-awesome" size={32} color={colors.pink[600]} />}
-              name={t('home.tokyoDisneyland')}
-              description={t('home.landDescription')}
-              color={colors.pink[600]}
-              isSelected={selectedPark === ParkType.LAND}
-              onPress={() => setSelectedPark(selectedPark === ParkType.LAND ? null : ParkType.LAND)}
-            />
-            
-            <ParkButton
-              parkType={ParkType.SEA}
-              icon={<FontAwesome5 name="globe" size={32} color={colors.teal[600]} />}
-              name={t('home.tokyoDisneysea')}
-              description={t('home.seaDescription')}
-              color={colors.teal[600]}
-              isSelected={selectedPark === ParkType.SEA}
-              onPress={() => setSelectedPark(selectedPark === ParkType.SEA ? null : ParkType.SEA)}
-            />
-          </View>
-        </View>
 
 
-        {/* Quick Actions Section */}
-        <View style={styles.quickActionsSection}>
-          <Text style={[styles.sectionTitle, { color: theme?.colors?.text?.primary || '#000' }]}>
-            {t('home.quickActions')}
-          </Text>
-          
-          <View style={styles.quickActionsGrid}>
-            <QuickActionButton
-              icon={<Ionicons name="add-circle" size={28} color={colors.green[600]} />}
-              label={t('home.newVisit')}
-              color={colors.green[600]}
-              onPress={() => {/* Navigate to record screen */}}
-            />
-            <QuickActionButton
-              icon={<Ionicons name="stats-chart" size={28} color={colors.purple[600]} />}
-              label={t('home.analytics')}
-              color={colors.purple[600]}
-              onPress={() => {/* Navigate to analytics */}}
-            />
-            <QuickActionButton
-              icon={<Ionicons name="camera" size={28} color={colors.orange[600]} />}
-              label={t('home.photos')}
-              color={colors.orange[600]}
-              onPress={() => {/* Open photo gallery */}}
-            />
-            <QuickActionButton
-              icon={<Ionicons name="heart" size={28} color={colors.red[600]} />}
-              label={t('home.favorites')}
-              color={colors.red[600]}
-              onPress={() => {/* Show favorites */}}
-            />
-          </View>
-        </View>
 
         {/* Fun Stats Section */}
         <View style={styles.funStatsSection}>
           <Text style={[styles.sectionTitle, { color: theme?.colors?.text?.primary || '#000' }]}>
-            魔法の記録 📊
+            {language === 'ja' ? '魔法の記録 📊' : 'Magic Records 📊'}
           </Text>
           
           <View style={styles.funStatsGrid}>
@@ -608,7 +479,7 @@ export const HomeScreen = () => {
                   {getVisitStats.recentVisits}
                 </Text>
                 <Text style={[styles.funStatLabel, { color: colors.yellow[600] }]}>
-                  今月の来園
+                  {language === 'ja' ? '今月の来園' : 'This Month'}
                 </Text>
               </LinearGradient>
             </View>
@@ -618,12 +489,12 @@ export const HomeScreen = () => {
                 colors={[colors.green[100], colors.green[50]]}
                 style={styles.funStatGradient}
               >
-                <Ionicons name="star" size={32} color={colors.green[600]} />
+                <Ionicons name="list" size={32} color={colors.green[600]} />
                 <Text style={[styles.funStatValue, { color: colors.green[700] }]}>
-                  {Math.round((getVisitStats.totalActions / Math.max(getVisitStats.totalVisits, 1)) * 10) / 10}
+                  {getVisitStats.totalActions}
                 </Text>
                 <Text style={[styles.funStatLabel, { color: colors.green[600] }]}>
-                  平均楽しさ
+                  {language === 'ja' ? '総アクション数' : 'Total Actions'}
                 </Text>
               </LinearGradient>
             </View>
@@ -638,7 +509,10 @@ export const HomeScreen = () => {
             </Text>
             
             <View style={styles.recentVisitsContainer}>
-              {visits.slice(0, 3).map((visit, index) => (
+              {visits
+                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                .slice(0, 3)
+                .map((visit, index) => (
                 <TouchableOpacity
                   key={visit.id}
                   style={styles.recentVisitCard}
@@ -692,7 +566,16 @@ export const HomeScreen = () => {
                 <Text style={[styles.emptyStateMessage, { color: theme?.colors?.text?.secondary || '#666' }]}>
                   {t('home.firstVisitMessage')}
                 </Text>
-                <TouchableOpacity style={styles.emptyStateCTA}>
+                <TouchableOpacity 
+                  style={styles.emptyStateCTA}
+                  onPress={() => {
+                    // Record画面に遷移して今日の日付を設定
+                    const today = new Date();
+                    (navigation as any).navigate('Record', {
+                      initialDate: today.toISOString().split('T')[0]
+                    });
+                  }}
+                >
                   <LinearGradient
                     colors={[colors.purple[600], colors.purple[500]]}
                     style={styles.emptyStateCTAGradient}
@@ -750,7 +633,7 @@ const styles = StyleSheet.create({
   },
   heroContainer: {
     minHeight: 280,
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     paddingVertical: 32,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
@@ -784,10 +667,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 12,
+    alignItems: 'flex-start',
+    width: '100%',
+    paddingVertical: 4,
+  },
+  statsCardContainer: {
+    width: '48%',
+    marginBottom: 10,
+    minHeight: 120,
   },
   statsCard: {
-    width: (width - 72) / 2,
+    flex: 1,
+    minWidth: 150,
+    maxWidth: 200,
     aspectRatio: 1.1,
     borderRadius: 16,
     padding: 16,
@@ -795,6 +687,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: colors.utility.borderLight,
+    marginHorizontal: 4,
   },
   statsCardIcon: {
     width: 48,
@@ -819,10 +712,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     textAlign: 'center',
   },
-  parkSelectionSection: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
-  },
   sectionTitle: {
     fontSize: 28,
     fontWeight: '700',
@@ -833,99 +722,8 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     lineHeight: 24,
   },
-  parkButtonsContainer: {
-    gap: 16,
-  },
-  parkButton: {
-    borderRadius: 16,
-    marginBottom: 12,
-    shadowColor: colors.effects.shadowSoft,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  parkButtonSelected: {
-    shadowColor: 'rgba(139, 92, 246, 0.4)',
-    shadowOpacity: 1,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  parkButtonContainer: {
-    borderRadius: 16,
-    borderWidth: 2,
-    padding: 20,
-    minHeight: 100,
-  },
-  parkButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  parkButtonLeft: {
-    marginRight: 16,
-  },
-  parkButtonRight: {
-    flex: 1,
-    paddingRight: 30,
-  },
-  parkIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  parkButtonName: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 6,
-    lineHeight: 22,
-  },
-  parkButtonDescription: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  selectedIndicator: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-  },
-  quickActionsSection: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
-  },
-  quickActionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  quickActionButton: {
-    width: (width - 72) / 2,
-    aspectRatio: 2,
-  },
-  quickActionGradient: {
-    flex: 1,
-    borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  quickActionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  quickActionLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
   recentActivitySection: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     marginBottom: 32,
   },
   recentVisitsContainer: {
@@ -963,7 +761,7 @@ const styles = StyleSheet.create({
     color: colors.gray[600],
   },
   emptyStateSection: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     marginTop: 32,
   },
   emptyStateGradient: {
@@ -1008,67 +806,75 @@ const styles = StyleSheet.create({
   
   // Magic Card Styles
   magicCard: {
-    borderRadius: 20,
+    borderRadius: 16,
     overflow: 'hidden',
-    elevation: 8,
+    elevation: 6,
     shadowColor: colors.effects.shadowMedium,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    marginBottom: 0,
   },
   magicCardGradient: {
-    width: (width - 72) / 2,
-    aspectRatio: 1.1,
+    flex: 1,
   },
   magicCardBlur: {
     flex: 1,
-    padding: 16,
+    padding: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   magicCardIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   magicCardValue: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '700',
-    marginBottom: 4,
+    marginBottom: 3,
+    textAlign: 'center',
+    lineHeight: 26,
   },
   magicCardTitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     marginBottom: 2,
     textAlign: 'center',
     color: colors.text.primary,
+    lineHeight: 14,
   },
   magicCardSubtitle: {
-    fontSize: 11,
+    fontSize: 10,
     textAlign: 'center',
     color: colors.text.secondary,
+    lineHeight: 12,
   },
   
   // Fun Stats Styles
   funStatsSection: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     marginBottom: 32,
   },
   funStatsGrid: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 16,
+    justifyContent: 'center',
+    alignItems: 'stretch',
+    gap: 12,
   },
   funStatCard: {
     flex: 1,
+    minWidth: 120,
+    maxWidth: 180,
     borderRadius: 16,
     overflow: 'hidden',
+    marginHorizontal: 4,
   },
   funStatGradient: {
     padding: 20,

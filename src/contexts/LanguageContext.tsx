@@ -41,6 +41,7 @@ const translations = {
 
     // Navigation
     'nav.home': 'ホーム',
+    'nav.visitList': '来園記録',
     'nav.record': '記録',
     'nav.analytics': '分析',
     'nav.profile': 'プロフィール',
@@ -55,6 +56,8 @@ const translations = {
     'home.logged': '記録済み',
     'home.disneyland': 'ディズニーランド',
     'home.disneysea': 'ディズニーシー',
+    'home.disneylandShort': 'ランド',
+    'home.disneyseaShort': 'シー',
     'home.visits': '回',
     'home.chooseAdventure': 'あなたの冒険を選択',
     'home.selectPark': 'パークを選択して魔法の思い出を探索しましょう',
@@ -77,6 +80,7 @@ const translations = {
 
     // Record Screen
     'record.title': '来園を記録',
+    'record.editVisit': '来園記録を編集',
     'record.subtitle': 'あなたのディズニーの一日の魔法を記録',
     'record.complete': '% 完了',
     'record.weather': '天気',
@@ -152,6 +156,31 @@ const translations = {
     'profile.madeWithLove': 'ディズニーファンのために ❤️ で作成',
     'profile.japanese': '日本語',
     'profile.english': 'English',
+    'profile.welcomeTitle': 'プロフィール設定',
+    'profile.welcomeMessage': 'あなたの名前とプロフィール画像を設定して始めましょう！',
+    'profile.addPhoto': '写真を追加',
+    'profile.changePhoto': '写真を変更',
+    'profile.yourName': 'お名前',
+    'profile.namePlaceholder': 'お名前を入力してください',
+    'profile.getStarted': '始める',
+    'profile.saving': '保存中...',
+    'profile.nameRequired': '名前が必要です',
+    'profile.nameRequiredMessage': '名前を入力してください。',
+    'profile.saveError': '保存エラー',
+    'profile.saveErrorMessage': 'プロフィールの保存に失敗しました。',
+    'profile.permissionRequired': '権限が必要です',
+    'profile.permissionMessage': '写真ライブラリへのアクセス権限が必要です。',
+    'profile.imageError': '画像エラー',
+    'profile.imageErrorMessage': '画像の選択に失敗しました。',
+    'profile.cropImage': '画像を切り取り',
+    'profile.cropError': '切り取りエラー',
+    'profile.cropErrorMessage': '画像の切り取りに失敗しました。',
+    'profile.cropInstructions': '円の中に収めたい部分を調整してください',
+    'profile.cropRecommendation': '※ 正方形の画像を使用することをお勧めします',
+    'profile.imageRecommendation': '画像の推奨事項',
+    'profile.imageRecommendationMessage': 'この画像は正方形ではありません。正確な切り取りのために正方形の画像を使用することをお勧めします。続行しますか？',
+    'profile.scaleControl': '拡大・縮小',
+    'profile.positionControl': '位置調整',
 
     // Parks
     'park.disneyland': 'ディズニーランド',
@@ -178,9 +207,11 @@ const translations = {
     'common.ok': 'OK',
     'common.yes': 'Yes',
     'common.no': 'No',
+    'common.done': 'Done',
 
     // Navigation
     'nav.home': 'Home',
+    'nav.visitList': 'Visit Records',
     'nav.record': 'Record',
     'nav.analytics': 'Analytics',
     'nav.profile': 'Profile',
@@ -195,6 +226,8 @@ const translations = {
     'home.logged': 'Logged',
     'home.disneyland': 'Disneyland',
     'home.disneysea': 'DisneySea',
+    'home.disneylandShort': 'Land',
+    'home.disneyseaShort': 'Sea',
     'home.visits': 'Visits',
     'home.chooseAdventure': 'Choose Your Adventure',
     'home.selectPark': 'Select a park to explore your magical memories',
@@ -217,6 +250,7 @@ const translations = {
 
     // Record Screen
     'record.title': 'Record Your Visit',
+    'record.editVisit': 'Edit Visit Record',
     'record.subtitle': 'Capture the magic of your Disney day',
     'record.complete': '% Complete',
     'record.weather': 'Weather',
@@ -292,6 +326,31 @@ const translations = {
     'profile.madeWithLove': 'Made with ❤️ for Disney fans',
     'profile.japanese': '日本語',
     'profile.english': 'English',
+    'profile.welcomeTitle': 'Profile Setup',
+    'profile.welcomeMessage': 'Set up your name and profile picture to get started!',
+    'profile.addPhoto': 'Add Photo',
+    'profile.changePhoto': 'Change Photo',
+    'profile.yourName': 'Your Name',
+    'profile.namePlaceholder': 'Enter your name',
+    'profile.getStarted': 'Get Started',
+    'profile.saving': 'Saving...',
+    'profile.nameRequired': 'Name Required',
+    'profile.nameRequiredMessage': 'Please enter your name.',
+    'profile.saveError': 'Save Error',
+    'profile.saveErrorMessage': 'Failed to save profile.',
+    'profile.permissionRequired': 'Permission Required',
+    'profile.permissionMessage': 'Photo library access permission is required.',
+    'profile.imageError': 'Image Error',
+    'profile.imageErrorMessage': 'Failed to select image.',
+    'profile.cropImage': 'Crop Image',
+    'profile.cropError': 'Crop Error',
+    'profile.cropErrorMessage': 'Failed to crop image.',
+    'profile.cropInstructions': 'Adjust the part you want to fit in the circle',
+    'profile.cropRecommendation': '※ We recommend using square images for best results',
+    'profile.imageRecommendation': 'Image Recommendation',
+    'profile.imageRecommendationMessage': 'This image is not square. We recommend using square images for accurate cropping. Do you want to continue?',
+    'profile.scaleControl': 'Scale',
+    'profile.positionControl': 'Position',
 
     // Parks
     'park.disneyland': 'Disneyland',
@@ -312,31 +371,53 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   const [language, setLanguageState] = useState<Language>('ja'); // Default to Japanese
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load saved language preference on mount
+  // Load saved language preference on mount - with safety checks
   useEffect(() => {
     const loadSavedLanguage = async () => {
       try {
-        const savedLanguage = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('AsyncStorage timeout')), 3000);
+        });
+        
+        const storagePromise = AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
+        
+        const savedLanguage = await Promise.race([storagePromise, timeoutPromise]) as string | null;
+        
         if (savedLanguage && (savedLanguage === 'ja' || savedLanguage === 'en')) {
           setLanguageState(savedLanguage as Language);
         }
       } catch (error) {
-        console.error('Error loading language preference:', error);
+        console.warn('Error loading language preference, using default:', error);
+        // Use default language if storage fails
       } finally {
         setIsLoading(false);
       }
     };
 
+    // Immediate fallback for production
+    if (!__DEV__) {
+      setTimeout(() => setIsLoading(false), 1000);
+    }
+
     loadSavedLanguage();
   }, []);
 
-  // Set language and save to storage
+  // Set language and save to storage - with safety checks
   const setLanguage = async (lang: Language) => {
     setLanguageState(lang);
     try {
-      await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+      // Add timeout for save operation
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('AsyncStorage save timeout')), 2000);
+      });
+      
+      const savePromise = AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+      
+      await Promise.race([savePromise, timeoutPromise]);
     } catch (error) {
-      console.error('Error saving language preference:', error);
+      console.warn('Error saving language preference:', error);
+      // Continue without saving - language still works
     }
   };
 
@@ -390,12 +471,18 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   );
 };
 
-// Custom hook to use the language context
+// Safe custom hook to use the language context
 export const useLanguage = (): LanguageContextType => {
   const context = useContext(LanguageContext);
   
   if (!context) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
+    // Return safe fallback instead of throwing error
+    return {
+      language: 'ja',
+      setLanguage: async () => {},
+      t: (key: string) => key,
+      isLoading: false,
+    };
   }
   
   return context;

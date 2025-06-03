@@ -1,0 +1,99 @@
+import React, { useState, useEffect } from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { View, Text, StyleSheet } from 'react-native';
+import { ThemeProvider } from './src/contexts/ThemeContext';
+import { LanguageProvider } from './src/contexts/LanguageContext';
+import { AppNavigator } from './src/navigation/AppNavigator';
+import { ProfileSetupModal } from './src/components/ProfileSetupModal';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
+import { profileService, UserProfile } from './src/services/profileService';
+
+export default function App() {
+  const [isProfileChecked, setIsProfileChecked] = useState(false);
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [currentProfile, setCurrentProfile] = useState<UserProfile | null>(null);
+  const [initError, setInitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    initializeApp();
+  }, []);
+
+  const initializeApp = async () => {
+    try {
+      // Add timeout to prevent infinite loading
+      const checkProfile = async () => {
+        const hasProfile = await profileService.hasProfile();
+        if (!hasProfile) {
+          setShowProfileSetup(true);
+        } else {
+          const profile = await profileService.getProfile();
+          setCurrentProfile(profile);
+        }
+      };
+
+      await Promise.race([
+        checkProfile(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Profile check timeout')), 10000)
+        )
+      ]);
+    } catch (error) {
+      console.error('Error initializing app:', error);
+      setInitError(error instanceof Error ? error.message : 'Unknown error');
+      // Continue without profile check in case of error
+    } finally {
+      setIsProfileChecked(true);
+    }
+  };
+
+  const handleProfileComplete = (profile: UserProfile) => {
+    setCurrentProfile(profile);
+    setShowProfileSetup(false);
+  };
+
+  if (!isProfileChecked) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (initError) {
+    console.warn('App initialization error (continuing):', initError);
+  }
+
+  return (
+    <ErrorBoundary>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <LanguageProvider>
+            <ThemeProvider>
+              <AppNavigator />
+              <ProfileSetupModal
+                visible={showProfileSetup}
+                onComplete={handleProfileComplete}
+              />
+              <StatusBar style="auto" />
+            </ThemeProvider>
+          </LanguageProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
+  );
+}
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  loadingText: {
+    fontSize: 18,
+    color: '#333',
+  },
+});

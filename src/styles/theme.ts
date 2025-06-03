@@ -22,10 +22,10 @@ const fallbackColors = {
   },
   utility: {
     borderLight: '#f3f4f6',
-    border: '#e5e7eb',
     white: '#ffffff',
     gridLight: '#f9fafb',
   },
+  border: '#e5e7eb',
 };
 
 // Try to import colors, fallback if it fails
