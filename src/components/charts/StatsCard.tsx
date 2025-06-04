@@ -38,35 +38,10 @@ export const StatsCard: React.FC<StatsCardProps> = ({
   const { theme } = useTheme();
   const isDark = theme.mode === 'dark';
   
-  // Animation values
-  const scaleAnim = useRef(new Animated.Value(0)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
-
-  useEffect(() => {
-    const animation = Animated.parallel([
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 600,
-        delay: animationDelay,
-        useNativeDriver: true,
-      }),
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 400,
-        delay: animationDelay + 100,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 500,
-        delay: animationDelay + 50,
-        useNativeDriver: true,
-      }),
-    ]);
-
-    animation.start();
-  }, [animationDelay]);
+  // Remove animations entirely for stability
+  // const scaleAnim = useRef(new Animated.Value(1)).current;
+  // const fadeAnim = useRef(new Animated.Value(1)).current;
+  // const slideAnim = useRef(new Animated.Value(0)).current;
 
   // Calculate percentage change
   const calculateChange = () => {
@@ -145,7 +120,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
         )}
       </View>
 
-      <Animated.View style={{ transform: [{ translateY: slideAnim }] }}>
+      <View>
         <Text style={[styles.value, { color: theme.colors.text.primary }]}>
           {typeof value === 'number' ? value.toLocaleString() : value}
         </Text>
@@ -159,7 +134,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
             {subtitle}
           </Text>
         )}
-      </Animated.View>
+      </View>
     </LinearGradient>
   );
 
@@ -174,15 +149,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
 
   if (onPress) {
     return (
-      <Animated.View
-        style={[
-          cardStyle,
-          {
-            transform: [{ scale: scaleAnim }],
-            opacity: fadeAnim,
-          },
-        ]}
-      >
+      <View style={cardStyle}>
         <TouchableOpacity
           onPress={onPress}
           style={styles.touchable}
@@ -190,22 +157,14 @@ export const StatsCard: React.FC<StatsCardProps> = ({
         >
           <CardContent />
         </TouchableOpacity>
-      </Animated.View>
+      </View>
     );
   }
 
   return (
-    <Animated.View
-      style={[
-        cardStyle,
-        {
-          transform: [{ scale: scaleAnim }],
-          opacity: fadeAnim,
-        },
-      ]}
-    >
+    <View style={cardStyle}>
       <CardContent />
-    </Animated.View>
+    </View>
   );
 };
 

@@ -6,10 +6,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  Share,
+  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { colors } from '../styles/colors';
@@ -27,6 +30,8 @@ import {
   LineChart,
   HeatMap,
   TopRankingList,
+  MonthlyVisitCalendar,
+  YearlyCalendarSlider,
   type SimplePieChartData,
   type BarChartData,
   type LineChartData,
@@ -60,8 +65,9 @@ interface SpecificPeriod {
 }
 
 export const AnalyticsScreen = () => {
+  const navigation = useNavigation();
   const { theme } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const isDark = theme.mode === 'dark';
   
   // Add error state for crash handling
@@ -126,6 +132,7 @@ export const AnalyticsScreen = () => {
     isLoading: visitsLoading,
     getVisitStatistics,
     getFilteredVisits,
+    refreshData: refreshVisits,
   } = useVisits();
   
   const {
@@ -133,6 +140,7 @@ export const AnalyticsScreen = () => {
     isLoading: actionsLoading,
     getActionStatistics,
     getFilteredActions,
+    refreshData: refreshActions,
   } = useActions();
 
   // State
@@ -146,7 +154,7 @@ export const AnalyticsScreen = () => {
     endDate: new Date(),
   });
   const [selectedChart, setSelectedChart] = useState<string | null>(null);
-  const [isExporting, setIsExporting] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
 
   // Responsive states
@@ -220,6 +228,27 @@ export const AnalyticsScreen = () => {
   const [visitStats, setVisitStats] = useState<any>(null);
   const [actionStats, setActionStats] = useState<any>(null);
 
+  // Refresh handler
+  const handleRefresh = async () => {
+    try {
+      await Promise.all([
+        refreshVisits && refreshVisits(),
+        refreshActions && refreshActions()
+      ]);
+    } catch (error) {
+      console.error('Error refreshing analytics data:', error);
+    }
+  };
+
+  // Auto-refresh when screen comes into focus
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      handleRefresh();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
   // Load analytics data with comprehensive error handling
   useEffect(() => {
     let isMounted = true; // Prevent state updates if component unmounted
@@ -276,55 +305,53 @@ export const AnalyticsScreen = () => {
     };
   }, [currentFilter, isLoading, getVisitStatistics, getActionStatistics]);
 
-  // Statistics cards data
+  // Statistics cards data with proper translation and debugging
   const statsCards = useMemo(() => {
-    if (!visitStats || !actionStats) return [];
+    if (!visitStats || !actionStats || !t) return [];
 
-    // Add safety checks for all data access
-    const safeVisitStats = {
-      totalVisits: visitStats?.totalVisits || 0,
-      averageVisitDuration: visitStats?.averageVisitDuration || null,
-    };
+    const totalVisits = visitStats?.totalVisits || 0;
+    const totalActions = actionStats?.totalActions || 0;
+    const photoCount = actionStats?.photoCount || 0;
+    const avgActionsPerVisit = actionStats?.averageActionsPerVisit || 0;
+    const avgDuration = visitStats?.averageVisitDuration;
 
-    const safeActionStats = {
-      totalActions: actionStats?.totalActions || 0,
-      averageActionsPerVisit: actionStats?.averageActionsPerVisit || 0,
-      photoCount: actionStats?.photoCount || 0,
-    };
+    // Debug: Log the translation function and language
+    console.log('Current language:', language);
+    console.log('Translation test:', t('analytics.totalVisits'));
 
     return [
       {
-        title: t('analytics.totalVisits'),
-        value: safeVisitStats.totalVisits,
+        title: t('analytics.totalVisits') || (language === 'ja' ? '総来園回数' : 'Total Visits'),
+        value: totalVisits,
         icon: 'calendar' as keyof typeof Ionicons.glyphMap,
         color: colors.purple[500],
-        subtitle: selectedPeriod === 'all-time' ? t('analytics.allTime') : t('analytics.thisPeriod'),
+        subtitle: selectedPeriod === 'all-time' 
+          ? (t('analytics.allTime') || (language === 'ja' ? '全期間' : 'All Time'))
+          : (t('analytics.thisPeriod') || (language === 'ja' ? 'この期間' : 'This Period')),
       },
       {
-        title: t('analytics.totalActions'),
-        value: safeActionStats.totalActions,
+        title: t('analytics.totalActions') || (language === 'ja' ? '総アクティビティ数' : 'Total Actions'),
+        value: totalActions,
         icon: 'rocket' as keyof typeof Ionicons.glyphMap,
         color: '#3b82f6',
-        subtitle: `${safeActionStats.averageActionsPerVisit.toFixed(1)} ${t('analytics.perVisit')}`,
+        subtitle: `${avgActionsPerVisit.toFixed(1)} ${t('analytics.perVisit') || (language === 'ja' ? '来園あたり' : 'per visit')}`,
       },
       {
-        title: t('analytics.photosTaken'),
-        value: safeActionStats.photoCount,
+        title: t('analytics.photosTaken') || (language === 'ja' ? '撮影写真数' : 'Photos Taken'),
+        value: photoCount,
         icon: 'camera' as keyof typeof Ionicons.glyphMap,
         color: '#22c55e',
-        subtitle: t('analytics.memoriesCaptured'),
+        subtitle: t('analytics.memoriesCaptured') || (language === 'ja' ? '記録された思い出' : 'Memories Captured'),
       },
       {
-        title: t('analytics.avgVisitDuration'),
-        value: safeVisitStats.averageVisitDuration
-          ? `${Math.round(safeVisitStats.averageVisitDuration / 60)}h`
-          : 'N/A',
+        title: t('analytics.avgVisitDuration') || (language === 'ja' ? '平均滞在時間' : 'Avg Duration'),
+        value: avgDuration ? `${Math.round(avgDuration / 60)}h` : 'N/A',
         icon: 'time' as keyof typeof Ionicons.glyphMap,
         color: '#facc15',
-        subtitle: t('analytics.hoursPerVisit'),
+        subtitle: t('analytics.hoursPerVisit') || (language === 'ja' ? '来園あたりの時間' : 'Hours per visit'),
       },
     ];
-  }, [visitStats, actionStats, selectedPeriod, t]);
+  }, [visitStats, actionStats, selectedPeriod, t, language]);
 
   // Pie chart data for park visits
   const parkVisitsData = useMemo((): SimplePieChartData[] => {
@@ -492,61 +519,22 @@ export const AnalyticsScreen = () => {
       }));
   }, [actionStats]);
 
-  // Visits over time line chart
-  const visitsTimelineData = useMemo((): LineChartData[] => {
-    try {
-      if (!visitStats || typeof visitStats !== 'object') return [];
-
-      if (selectedPeriod === 'yearly' || selectedPeriod === 'all-time') {
-        if (!visitStats.visitsByYear || !Array.isArray(visitStats.visitsByYear)) {
-          return [];
+  // Get years with visits for calendar display
+  const yearsWithVisits = useMemo(() => {
+    if (!visits || !Array.isArray(visits)) return [];
+    
+    const years = new Set<number>();
+    visits.forEach(visit => {
+      if (visit?.date) {
+        const year = new Date(visit.date).getFullYear();
+        if (!isNaN(year)) {
+          years.add(year);
         }
-        return visitStats.visitsByYear
-          .filter(item => item && typeof item === 'object')
-          .map((item: any) => {
-            try {
-              return {
-                x: item?.year?.toString() || '0',
-                y: typeof item?.count === 'number' ? item.count : 0,
-                label: item?.year?.toString() || '0',
-              };
-            } catch (error) {
-              console.warn('Error processing year data:', item, error);
-              return { x: '0', y: 0, label: '0' };
-            }
-          });
-      } else {
-        if (!visitStats.visitsByMonth || !Array.isArray(visitStats.visitsByMonth)) {
-          return [];
-        }
-        return visitStats.visitsByMonth
-          .filter(item => item && typeof item === 'object')
-          .map((item: any) => {
-            try {
-              let label = '';
-              if (item?.month && typeof item.month === 'string') {
-                try {
-                  label = new Date(item.month + '-01').toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-                } catch (dateError) {
-                  label = item.month;
-                }
-              }
-              return {
-                x: item?.month || '',
-                y: typeof item?.count === 'number' ? item.count : 0,
-                label,
-              };
-            } catch (error) {
-              console.warn('Error processing month data:', item, error);
-              return { x: '', y: 0, label: '' };
-            }
-          });
       }
-    } catch (error) {
-      console.error('Error in visitsTimelineData:', error);
-      return [];
-    }
-  }, [visitStats, selectedPeriod]);
+    });
+    
+    return Array.from(years).sort((a, b) => b - a);
+  }, [visits]);
 
   // Heat map data for visit frequency
   const visitHeatMapData = useMemo((): HeatMapData[] => {
@@ -578,40 +566,84 @@ export const AnalyticsScreen = () => {
     }));
   }, [visitStats]);
 
-  // Export functionality
-  const handleExport = async () => {
+  // Share functionality
+  const handleShare = async () => {
     try {
-      setIsExporting(true);
+      setIsSharing(true);
       
-      // Create a simple analytics report
-      const report = {
-        period: selectedPeriod,
-        generatedAt: new Date().toISOString(),
-        stats: {
-          totalVisits: visitStats?.totalVisits || 0,
-          totalActions: actionStats?.totalActions || 0,
-          photoCount: actionStats?.photoCount || 0,
-        },
-        topAttractions: topAttractionsData.slice(0, 5),
-        topRestaurants: topRestaurantsData.slice(0, 5),
-      };
+      // Create shareable text with emojis
+      const currentYear = specificPeriod.type === 'year' ? specificPeriod.value : new Date().getFullYear();
+      const periodText = selectedPeriod === 'yearly' ? `${currentYear}年` : 
+        selectedPeriod === 'monthly' ? '今月' : 
+        selectedPeriod === 'all-time' ? '全期間' : '期間';
+      
+      const topAttraction = topAttractionsData.length > 0 ? topAttractionsData[0]?.name : null;
+      const topRestaurant = topRestaurantsData.length > 0 ? topRestaurantsData[0]?.name : null;
+      
+      let shareText = `🏰 TDR Days ${periodText}の記録 ✨\n\n`;
+      shareText += `📊 来園数: ${visitStats?.totalVisits || 0}回\n`;
+      shareText += `🎢 アクション数: ${actionStats?.totalActions || 0}件\n`;
+      shareText += `📸 写真: ${actionStats?.photoCount || 0}枚\n\n`;
+      
+      if (topAttraction) {
+        shareText += `🎯 よく行くアトラクション: ${topAttraction}\n`;
+      }
+      if (topRestaurant) {
+        shareText += `🍽️ よく行くレストラン: ${topRestaurant}\n`;
+      }
+      
+      shareText += `\n#TDRDays #ディズニー #東京ディズニーリゾート`;
 
-      // For now, just show the data in an alert
-      const topAttraction = topAttractionsData.length > 0 ? topAttractionsData[0]?.name : 'None';
-      const topRestaurant = topRestaurantsData.length > 0 ? topRestaurantsData[0]?.name : 'None';
-      
-      const summary = `${t('analytics.title')} (${selectedPeriod}):\n\n` +
-        `• ${t('analytics.totalVisits')}: ${report.stats.totalVisits}\n` +
-        `• ${t('analytics.totalActions')}: ${report.stats.totalActions}\n` +
-        `• ${t('analytics.photosTaken')}: ${report.stats.photoCount}\n\n` +
-        `${t('analytics.topAttractions')}: ${topAttraction}\n` +
-        `${t('analytics.favoriteRestaurants')}: ${topRestaurant}`;
-      
-      Alert.alert(t('analytics.exportSuccess'), summary);
+      // Show share options
+      Alert.alert(
+        '共有',
+        'どこに共有しますか？',
+        [
+          {
+            text: 'キャンセル',
+            style: 'cancel',
+          },
+          {
+            text: 'Twitter',
+            onPress: () => shareToTwitter(shareText),
+          },
+          {
+            text: 'その他',
+            onPress: () => shareGeneral(shareText),
+          },
+        ]
+      );
     } catch (error) {
-      Alert.alert(t('analytics.exportError'), t('analytics.exportErrorMessage'));
+      Alert.alert('エラー', '共有に失敗しました');
     } finally {
-      setIsExporting(false);
+      setIsSharing(false);
+    }
+  };
+
+  const shareToTwitter = async (text: string) => {
+    try {
+      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+      const canOpen = await Linking.canOpenURL(twitterUrl);
+      
+      if (canOpen) {
+        await Linking.openURL(twitterUrl);
+      } else {
+        // Fallback to general share
+        await shareGeneral(text);
+      }
+    } catch (error) {
+      await shareGeneral(text);
+    }
+  };
+
+  const shareGeneral = async (text: string) => {
+    try {
+      await Share.share({
+        message: text,
+        title: 'TDR Days 分析結果',
+      });
+    } catch (error) {
+      Alert.alert('エラー', '共有に失敗しました');
     }
   };
 
@@ -669,14 +701,12 @@ export const AnalyticsScreen = () => {
           console.error('Error rendering SimplePieChart:', error);
           return null;
         }
-      case 'line':
+      case 'calendar':
         return (
-          <LineChart
+          <MonthlyVisitCalendar
             key={chart.key}
-            data={chart.data}
-            title={chart.title}
-            color={chart.color}
-            height={isTabletOrLarger ? 320 : 280}
+            visits={visits}
+            year={chart.year}
             animationDelay={chart.delay}
           />
         );
@@ -756,17 +786,6 @@ export const AnalyticsScreen = () => {
       }
     }
     
-    if (visitsTimelineData.length > 0) {
-      charts.push({
-        key: 'visits-timeline',
-        type: 'line',
-        data: visitsTimelineData,
-        title: t('analytics.visitsOverTime'),
-        color: colors.purple[500],
-        delay: 800,
-      });
-    }
-    
     if (areaDistributionData.length > 0) {
       charts.push({
         key: 'area-distribution',
@@ -789,7 +808,7 @@ export const AnalyticsScreen = () => {
     }
     
     return charts;
-  }, [parkVisitsData, actionCategoriesData, visitsTimelineData, areaDistributionData, visitHeatMapData]);
+  }, [parkVisitsData, actionCategoriesData, areaDistributionData, visitHeatMapData]);
 
   // Handle error state
   if (hasError) {
@@ -835,9 +854,9 @@ export const AnalyticsScreen = () => {
           onMenuOpen={() => setMenuVisible(true)}
           rightComponent={
             <TouchableOpacity
-              onPress={handleExport}
+              onPress={handleShare}
               style={[
-                styles.exportButton,
+                styles.shareButton,
                 {
                   backgroundColor: colors.purple.bright + '15',
                   padding: rSpacing(12),
@@ -846,10 +865,10 @@ export const AnalyticsScreen = () => {
                   borderColor: colors.purple.bright + '30',
                 }
               ]}
-              disabled={isExporting || isLoading}
+              disabled={isSharing || isLoading}
             >
               <Ionicons
-                name={isExporting ? 'hourglass' : 'download'}
+                name={isSharing ? 'hourglass' : 'share'}
                 size={20}
                 color={colors.purple.bright}
               />
@@ -1048,23 +1067,42 @@ export const AnalyticsScreen = () => {
           <ResponsiveSection spacing="lg">
             <View style={[styles.statsGrid, { paddingHorizontal: rSpacing(20) }]}>
               {statsCards.map((stat, index) => {
-                // Safe width calculation with fallbacks
-                const safeStatsColumns = Math.max(1, statsColumns || 2);
-                const safeDimensionsWidth = Math.max(300, dimensions?.width || 300);
-                const safeSpacing = rSpacing ? rSpacing(52) : 52;
-                const cardWidth = Math.max(100, (safeDimensionsWidth - safeSpacing) / safeStatsColumns);
-                
-                // Additional validation
-                const finalCardWidth = isNaN(cardWidth) ? 150 : cardWidth;
-                
                 return (
-                  <View key={index} style={[styles.statCardWrapper, { width: finalCardWidth }]}>
+                  <View 
+                    key={`stat-card-${index}`} 
+                    style={styles.statCardWrapper}
+                  >
                     {renderStatCard(stat, index)}
                   </View>
                 );
               })}
             </View>
           </ResponsiveSection>
+
+          {/* Monthly Visit Calendar Section */}
+          {selectedPeriod === 'yearly' && specificPeriod.type === 'year' && (
+            <ResponsiveSection spacing="lg">
+              <View style={[styles.calendarSection, { paddingHorizontal: rSpacing(20) }]}>
+                <MonthlyVisitCalendar
+                  visits={visits}
+                  year={specificPeriod.value}
+                  animationDelay={800}
+                />
+              </View>
+            </ResponsiveSection>
+          )}
+
+          {/* Yearly Calendar Slider - Only show for all-time period */}
+          {selectedPeriod === 'all-time' && yearsWithVisits.length > 0 && (
+            <ResponsiveSection spacing="lg">
+              <View style={[styles.calendarSection, { paddingHorizontal: rSpacing(20) }]}>
+                <YearlyCalendarSlider
+                  visits={visits}
+                  animationDelay={800}
+                />
+              </View>
+            </ResponsiveSection>
+          )}
 
           {/* Charts Section */}
           <ResponsiveSection spacing="lg">
@@ -1149,7 +1187,7 @@ const styles = StyleSheet.create({
   scrollableContent: {
     flex: 1,
   },
-  exportButton: {
+  shareButton: {
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1178,10 +1216,14 @@ const styles = StyleSheet.create({
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    justifyContent: 'space-between',
   },
   statCardWrapper: {
-    // Width calculated dynamically
+    width: '48%',
+    marginBottom: 16,
+  },
+  calendarSection: {
+    gap: 24,
   },
   chartsSection: {
     gap: 24,

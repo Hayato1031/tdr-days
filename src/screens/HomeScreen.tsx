@@ -15,6 +15,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import Svg, { Path } from 'react-native-svg';
 import DraggableFlatList, {
   ScaleDecorator,
   ShadowDecorator,
@@ -35,6 +36,7 @@ import { ActionModal } from '../components/ActionModal';
 import { VisitFilter } from '../components/VisitFilter';
 import { GridLayout } from '../components/layouts/GridLayout';
 import { ResponsiveContainer, ResponsiveSection } from '../components/layouts/ResponsiveContainer';
+import { getDailyGreeting } from '../utils/greetings';
 import {
   Visit,
   TimelineAction,
@@ -198,6 +200,26 @@ export const HomeScreen = () => {
   const [headerAnimation] = useState(new Animated.Value(0));
   const [refreshing, setRefreshing] = useState(false);
   const [floatingAnimation] = useState(new Animated.Value(0));
+  const [dailyGreeting, setDailyGreeting] = useState<{ text: string; area?: string; isSpecial: boolean }>({ text: 'ようこそ', isSpecial: false });
+
+  // Load daily greeting
+  useEffect(() => {
+    const loadGreeting = async () => {
+      const greeting = await getDailyGreeting();
+      setDailyGreeting(greeting);
+    };
+    loadGreeting();
+  }, []);
+
+  // Re-load greeting when screen comes into focus
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', async () => {
+      const greeting = await getDailyGreeting();
+      setDailyGreeting(greeting);
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   // Animation effects
   useEffect(() => {
@@ -261,6 +283,15 @@ export const HomeScreen = () => {
       setRefreshing(false);
     }
   }, [refreshVisits, refreshActions]);
+
+  // Auto-refresh when screen comes into focus
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      handleRefresh();
+    });
+
+    return unsubscribe;
+  }, [navigation, handleRefresh]);
 
   return (
     <SwipeableScreen onSwipeFromLeft={() => setMenuVisible(true)}>
@@ -391,16 +422,42 @@ export const HomeScreen = () => {
             <View style={styles.heroContainer}>
               {/* Welcome Text with Enhanced Typography */}
               <View style={styles.welcomeContainer}>
-                <Text style={[styles.welcomeText, { color: theme?.colors?.text?.secondary || '#666' }]}>
-                  {t('home.welcome')}
-                </Text>
+                <View style={styles.greetingContainer}>
+                  <Text style={[styles.welcomeText, { color: theme?.colors?.text?.secondary || '#666' }]}>
+                    {dailyGreeting.text}
+                  </Text>
+                  {dailyGreeting.isSpecial && dailyGreeting.area && (
+                    <Text style={[styles.greetingArea, { color: colors.purple[400] }]}>
+                      {dailyGreeting.area}
+                    </Text>
+                  )}
+                </View>
                 <Text style={[styles.appTitle, { color: theme?.colors?.text?.primary || '#000' }]}>
                   {t('home.appTitle')}
-                  <Text style={[styles.appTitleAccent, { color: colors.purple[500] }]}> ✨</Text>
                 </Text>
-                <Text style={[styles.tagline, { color: theme?.colors?.text?.secondary || '#666' }]}>
-                  {t('home.tagline')}
-                </Text>
+                
+                {/* Hand-drawn style decorative line */}
+                <View style={styles.decorativeLine}>
+                  <Svg width="120" height="20" viewBox="0 0 120 20">
+                    <Path
+                      d="M5 12 Q20 8, 35 10 T65 9 Q80 7, 95 11 T115 10"
+                      stroke={colors.purple[400]}
+                      strokeWidth="2"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      opacity={0.6}
+                    />
+                    {/* Small decorative dots */}
+                    <Path
+                      d="M25 6 L26 6 M45 14 L46 14 M75 5 L76 5"
+                      stroke={colors.purple[300]}
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      opacity={0.4}
+                    />
+                  </Svg>
+                </View>
               </View>
 
               {/* Enhanced Stats Cards with Animations - 2x2 Grid */}
@@ -642,11 +699,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
   },
+  greetingContainer: {
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   welcomeText: {
     fontSize: 16,
     fontWeight: '500',
-    marginBottom: 8,
     textAlign: 'center',
+  },
+  greetingArea: {
+    fontSize: 12,
+    fontWeight: '400',
+    textAlign: 'center',
+    marginTop: 2,
+    fontStyle: 'italic',
   },
   appTitle: {
     fontSize: 32,
@@ -892,5 +959,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  
+  // Decorative line styles
+  decorativeLine: {
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 4,
   },
 });

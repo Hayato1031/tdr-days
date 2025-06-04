@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { colors } from '../styles/colors';
+import { APP_CONFIG, getCopyrightString } from '../constants/app';
 
 interface AboutAppModalProps {
   visible: boolean;
@@ -126,7 +127,7 @@ export const AboutAppModal: React.FC<AboutAppModalProps> = ({
                     />
                   </View>
                   <Text style={[styles.appName, { color: theme.colors.text.primary }]}>
-                    TDR Days
+                    {APP_CONFIG.NAME}
                   </Text>
                   <Text style={[styles.appTagline, { color: theme.colors.text.secondary }]}>
                     {language === 'ja' ? '東京ディズニーリゾート来園記録アプリ' : 'Tokyo Disney Resort Visit Recorder'}
@@ -197,7 +198,7 @@ export const AboutAppModal: React.FC<AboutAppModalProps> = ({
                       {language === 'ja' ? 'アプリ名' : 'App Name'}
                     </Text>
                     <Text style={[styles.detailValue, { color: theme.colors.text.primary }]}>
-                      TDR Days
+                      {APP_CONFIG.NAME}
                     </Text>
                   </View>
                   <View style={styles.detailRow}>
@@ -205,7 +206,7 @@ export const AboutAppModal: React.FC<AboutAppModalProps> = ({
                       {language === 'ja' ? 'バージョン' : 'Version'}
                     </Text>
                     <Text style={[styles.detailValue, { color: theme.colors.text.primary }]}>
-                      1.0.0
+                      {APP_CONFIG.VERSION}
                     </Text>
                   </View>
                   <View style={styles.detailRow}>
@@ -213,7 +214,7 @@ export const AboutAppModal: React.FC<AboutAppModalProps> = ({
                       {language === 'ja' ? '開発者' : 'Developer'}
                     </Text>
                     <Text style={[styles.detailValue, { color: theme.colors.text.primary }]}>
-                      TDR Days Team
+                      {APP_CONFIG.TEAM_NAME}
                     </Text>
                   </View>
                   <View style={styles.detailRow}>
@@ -248,7 +249,7 @@ export const AboutAppModal: React.FC<AboutAppModalProps> = ({
               {/* Copyright */}
               <View style={styles.section}>
                 <Text style={[styles.copyright, { color: theme.colors.text.disabled }]}>
-                  © 2024 TDR Days Team
+                  {getCopyrightString()}
                 </Text>
                 <Text style={[styles.copyright, { color: theme.colors.text.disabled }]}>
                   Made with ❤️ for Disney fans

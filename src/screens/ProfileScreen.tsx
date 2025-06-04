@@ -27,10 +27,13 @@ import { ProfileEditModal } from '../components/ProfileEditModal';
 import { HelpSupportModal } from '../components/HelpSupportModal';
 import { AboutAppModal } from '../components/AboutAppModal';
 import { TermsOfServiceModal } from '../components/TermsOfServiceModal';
+import { CompanionManagerModal } from '../components/CompanionManagerModal';
 import { profileService, UserProfile } from '../services/profileService';
 import { useVisits } from '../hooks/useVisits';
 import { useActions } from '../hooks/useActions';
+import { resetDailyGreeting, getNewRandomGreeting, forceSetGreeting } from '../utils/greetings';
 import { ActionCategory } from '../types/models';
+import { getVersionString, getCopyrightString } from '../constants/app';
 
 const { width } = Dimensions.get('window');
 
@@ -45,9 +48,10 @@ export const ProfileScreen = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [showCompanionManager, setShowCompanionManager] = useState(false);
   
   // Get actual data from hooks
-  const { visits, deleteAllVisits } = useVisits();
+  const { visits, deleteAllVisits, companions, createCompanion, deleteCompanion, updateCompanion } = useVisits();
   const { actions, deleteAllActions } = useActions();
 
   useEffect(() => {
@@ -105,12 +109,44 @@ export const ProfileScreen = () => {
     );
   };
 
+  const handleResetGreeting = async () => {
+    try {
+      // Reset the cache first
+      await resetDailyGreeting();
+      
+      // Then get a new greeting
+      const newGreeting = await getNewRandomGreeting();
+      
+      // Store the new greeting in the cache for display
+      await forceSetGreeting(newGreeting);
+      
+      Alert.alert(
+        language === 'ja' ? '新しい挨拶' : 'New Greeting',
+        language === 'ja' 
+          ? `挨拶: ${newGreeting.text}${newGreeting.area ? `\nエリア: ${newGreeting.area}` : ''}\n\nホーム画面に戻ると反映されます。`
+          : `Greeting: ${newGreeting.text}${newGreeting.area ? `\nArea: ${newGreeting.area}` : ''}\n\nReturn to home screen to see the change.`
+      );
+    } catch (error) {
+      Alert.alert(
+        language === 'ja' ? 'エラー' : 'Error',
+        language === 'ja' ? 'リセットに失敗しました' : 'Failed to reset'
+      );
+    }
+  };
+
   const menuItems = [
     { 
       icon: 'person', 
       label: language === 'ja' ? 'プロフィール編集' : 'Edit Profile', 
       section: 'account', 
       action: () => setShowProfileEdit(true) 
+    },
+    { 
+      icon: 'people', 
+      label: language === 'ja' ? '同行者管理' : 'Manage Companions', 
+      section: 'account', 
+      value: `${companions.length}${language === 'ja' ? '人' : ''}`,
+      action: () => setShowCompanionManager(true) 
     },
     { 
       icon: 'language', 
@@ -126,6 +162,13 @@ export const ProfileScreen = () => {
       action: handleDeleteAllVisits, 
       isDestructive: true 
     },
+    // Only show greeting reset in development
+    ...(__DEV__ ? [{ 
+      icon: 'refresh', 
+      label: language === 'ja' ? '挨拶をリセット (テスト用)' : 'Reset Greeting (Test)', 
+      section: 'data', 
+      action: handleResetGreeting 
+    }] : []),
     { 
       icon: 'help-circle', 
       label: language === 'ja' ? 'ヘルプ・サポート' : 'Help & Support', 
@@ -353,10 +396,10 @@ export const ProfileScreen = () => {
       {/* App Version */}
       <View style={styles.versionContainer}>
         <Text style={[styles.versionText, { color: theme.colors.text.secondary }]}>
-          TDR Days v1.0.0
+          {getVersionString()}
         </Text>
         <Text style={[styles.versionSubtext, { color: theme.colors.text.disabled }]}>
-          © 2024 TDR Days Team
+          {getCopyrightString()}
         </Text>
       </View>
 
@@ -389,6 +432,18 @@ export const ProfileScreen = () => {
       <TermsOfServiceModal
         visible={showTerms}
         onClose={() => setShowTerms(false)}
+      />
+      
+      {/* Companion Manager Modal */}
+      <CompanionManagerModal
+        visible={showCompanionManager}
+        onClose={() => setShowCompanionManager(false)}
+        companions={companions}
+        onCompanionCreate={createCompanion}
+        onCompanionDelete={deleteCompanion}
+        onCompanionUpdate={async (id, name) => {
+          await updateCompanion(id, { name });
+        }}
       />
       
       <DrawerMenu

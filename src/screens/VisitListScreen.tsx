@@ -43,6 +43,15 @@ export const VisitListScreen = () => {
     setRefreshing(false);
   };
 
+  // Auto-refresh when screen comes into focus
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      handleRefresh();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
   // 日本時間での今日の日付を取得
   const getTodayInJST = () => {
     const now = new Date();

@@ -92,7 +92,7 @@ export const TermsOfServiceModal: React.FC<TermsOfServiceModalProps> = ({
               {/* Effective Date */}
               <View style={styles.section}>
                 <Text style={[styles.effectiveDate, { color: theme.colors.text.secondary }]}>
-                  {language === 'ja' ? '最終更新日：2024年6月2日' : 'Last updated: June 2, 2024'}
+                  {language === 'ja' ? '最終更新日：2025年6月3日' : 'Last updated: June 3, 2025'}
                 </Text>
               </View>
 
@@ -287,7 +287,7 @@ export const TermsOfServiceModal: React.FC<TermsOfServiceModalProps> = ({
                   TDR Days Team
                 </Text>
                 <Text style={[styles.footerText, { color: theme.colors.text.disabled }]}>
-                  © 2024 All rights reserved.
+                  © 2025 All rights reserved.
                 </Text>
               </View>
 

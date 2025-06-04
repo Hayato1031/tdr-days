@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Dimensions,
   Animated,
+  Modal,
 } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -218,91 +219,107 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
       </TouchableOpacity>
 
       {/* Calendar Modal */}
-      {calendarVisible && (
-        <Animated.View
-          style={[
-            styles.calendarContainer,
-            {
-              opacity: slideAnim,
-              transform: [
-                {
-                  translateY: slideAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [-20, 0],
-                  }),
-                },
-                {
-                  scale: slideAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0.95, 1],
-                  }),
-                },
-              ],
-            },
-          ]}
+      <Modal
+        visible={calendarVisible}
+        transparent={true}
+        animationType="none"
+        onRequestClose={toggleCalendar}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={toggleCalendar}
         >
-          <View style={[
-            styles.calendarWrapper,
-            {
-              backgroundColor: colors.background.card,
-              borderColor: colors.utility.border,
-            }
-          ]}>
-            <View style={styles.calendarHeader}>
-              <Text style={[styles.calendarTitle, { color: theme.colors.text.primary }]}>
-                {language === 'ja' ? '日付を選択' : 'Select Date'}
-              </Text>
-              <TouchableOpacity
-                onPress={toggleCalendar}
-                style={styles.calendarCloseButton}
-              >
-                <Ionicons name="close" size={24} color={theme.colors.text.secondary} />
-              </TouchableOpacity>
-            </View>
-              <Calendar
-                style={styles.calendar}
-                theme={calendarTheme}
-                current={selectedDate || new Date().toISOString().split('T')[0]}
-                onDayPress={handleDayPress}
-                markedDates={
-                  selectedDate
-                    ? {
-                        [selectedDate]: {
-                          selected: true,
-                          disableTouchEvent: false,
-                          selectedColor: colors.purple[500],
-                          selectedTextColor: colors.utility.white,
-                        },
-                      }
-                    : undefined
+          <Animated.View
+            style={[
+              styles.calendarContainer,
+              {
+                opacity: slideAnim,
+                transform: [
+                  {
+                    translateY: slideAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-20, 0],
+                    }),
+                  },
+                  {
+                    scale: slideAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.95, 1],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={(e) => e.stopPropagation()}
+            >
+              <View style={[
+                styles.calendarWrapper,
+                {
+                  backgroundColor: colors.background.card,
+                  borderColor: colors.utility.border,
                 }
-                minDate={minDate}
-                maxDate={maxDate}
-                enableSwipeMonths={true}
-                hideArrows={false}
-                hideExtraDays={true}
-                disableMonthChange={false}
-                firstDay={0}
-                hideDayNames={false}
-                showWeekNumbers={false}
-                disableArrowLeft={false}
-                disableArrowRight={false}
-                disableAllTouchEventsForDisabledDays={true}
-                renderArrow={(direction) => (
-                  <View style={styles.arrowContainer}>
-                    <Ionicons
-                      name={
-                        direction === 'left' ? 'chevron-back' : 'chevron-forward'
-                      }
-                      size={24}
-                      color={colors.purple[500]}
-                    />
-                  </View>
-                )}
-              />
-          </View>
-        </Animated.View>
-      )}
+              ]}>
+                <View style={styles.calendarHeader}>
+                  <Text style={[styles.calendarTitle, { color: theme.colors.text.primary }]}>
+                    {language === 'ja' ? '日付を選択' : 'Select Date'}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={toggleCalendar}
+                    style={styles.calendarCloseButton}
+                  >
+                    <Ionicons name="close" size={24} color={theme.colors.text.secondary} />
+                  </TouchableOpacity>
+                </View>
+                  <Calendar
+                    style={styles.calendar}
+                    theme={calendarTheme}
+                    current={selectedDate || new Date().toISOString().split('T')[0]}
+                    onDayPress={handleDayPress}
+                    markedDates={
+                      selectedDate
+                        ? {
+                            [selectedDate]: {
+                              selected: true,
+                              disableTouchEvent: false,
+                              selectedColor: colors.purple[500],
+                              selectedTextColor: colors.utility.white,
+                            },
+                          }
+                        : undefined
+                    }
+                    minDate={minDate}
+                    maxDate={maxDate}
+                    enableSwipeMonths={true}
+                    hideArrows={false}
+                    hideExtraDays={true}
+                    disableMonthChange={false}
+                    firstDay={0}
+                    hideDayNames={false}
+                    showWeekNumbers={false}
+                    disableArrowLeft={false}
+                    disableArrowRight={false}
+                    disableAllTouchEventsForDisabledDays={true}
+                    renderArrow={(direction) => (
+                      <View style={styles.arrowContainer}>
+                        <Ionicons
+                          name={
+                            direction === 'left' ? 'chevron-back' : 'chevron-forward'
+                          }
+                          size={24}
+                          color={colors.purple[500]}
+                        />
+                      </View>
+                    )}
+                  />
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
@@ -310,7 +327,6 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginBottom: spacing[4],
-    zIndex: 1000,
   },
   dateButton: {
     borderRadius: borderRadius.xl,
@@ -337,12 +353,16 @@ const styles = StyleSheet.create({
     marginLeft: spacing[3],
     textAlign: 'left',
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing[5],
+  },
   calendarContainer: {
-    position: 'absolute',
-    top: 70,
-    left: 0,
-    right: 0,
-    zIndex: 1001,
+    width: '100%',
+    maxWidth: 400,
   },
   calendarWrapper: {
     borderRadius: borderRadius['2xl'],

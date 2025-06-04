@@ -10,6 +10,7 @@ import {
   Animated,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -26,6 +27,7 @@ import { CalendarPicker } from '../components/CalendarPicker';
 import { ParkSelector } from '../components/ParkSelector';
 import { CompanionManager } from '../components/CompanionManager';
 import { ResponsiveContainer, ResponsiveSection } from '../components/layouts/ResponsiveContainer';
+import { SuccessModal } from '../components/SuccessModal';
 import { useVisits } from '../hooks/useVisits';
 import { useResponsive } from '../hooks/useResponsive';
 import { ParkType, CreateInput, Visit } from '../types/models';
@@ -41,7 +43,7 @@ const getWeatherOptions = (t: any): Array<{
   { type: 'SUNNY', label: t('record.sunny'), icon: 'sunny', color: '#ffd60a' },
   { type: 'CLOUDY', label: t('record.cloudy'), icon: 'cloudy', color: '#8d99ae' },
   { type: 'RAINY', label: t('record.rainy'), icon: 'rainy', color: '#457b9d' },
-  { type: 'SNOWY', label: t('record.snowy'), icon: 'snow', color: '#f1faee' },
+  { type: 'SNOWY', label: t('record.snowy'), icon: 'snow', color: '#64b5f6' },
 ];
 
 interface RecordScreenParams {
@@ -55,7 +57,7 @@ export const RecordScreen = () => {
   const route = useRoute();
   const params = route.params as RecordScreenParams;
   const { theme } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const isDark = theme.mode === 'dark';
   const { 
     dimensions, 
@@ -100,6 +102,12 @@ export const RecordScreen = () => {
   const [notes, setNotes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [savedVisitId, setSavedVisitId] = useState<string | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const advancedAnimValue = useRef(new Animated.Value(0)).current;
+  const scrollViewRef = useRef<ScrollView>(null);
+  const companionTitleRef = useRef<View>(null);
 
   // Handle params changes (in case user navigates to this screen multiple times with different params)
   useEffect(() => {
@@ -116,26 +124,9 @@ export const RecordScreen = () => {
 
   // Animation refs
   const saveButtonScale = useRef(new Animated.Value(1)).current;
-  const formProgressAnim = useRef(new Animated.Value(0)).current;
 
   // Validation
   const isFormValid = selectedDate && selectedPark;
-  const completionPercentage = [
-    selectedDate,
-    selectedPark,
-    selectedCompanionIds.length > 0,
-    selectedWeather,
-    notes.trim(),
-  ].filter(Boolean).length / 5;
-
-  // Update progress animation
-  React.useEffect(() => {
-    Animated.timing(formProgressAnim, {
-      toValue: completionPercentage,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-  }, [completionPercentage]);
 
   const handleCompanionToggle = (companionId: string) => {
     setSelectedCompanionIds(prev => 
@@ -244,25 +235,60 @@ export const RecordScreen = () => {
         setNotes('');
       }
 
-      // Show success message and navigate back to list
-      Alert.alert(
-        t('record.success'),
-        t('record.successMessage'),
-        [
-          {
-            text: t('common.ok'),
-            onPress: () => {
-              // Navigate to visit list to see all records
-              navigation.navigate('VisitList' as never);
-            }
-          }
-        ]
-      );
+      // Show success modal
+      setSavedVisitId(resultVisit.id);
+      setShowSuccessModal(true);
     } catch (error) {
       Alert.alert(t('record.error'), t('record.errorMessage'));
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleSuccessConfirm = () => {
+    setShowSuccessModal(false);
+    if (savedVisitId) {
+      // Navigate to the specific visit detail page
+      navigation.navigate('VisitDetail' as never, { visitId: savedVisitId } as never);
+    }
+  };
+
+  const toggleAdvanced = () => {
+    const toValue = showAdvanced ? 0 : 1;
+    setShowAdvanced(!showAdvanced);
+    
+    Animated.timing(advancedAnimValue, {
+      toValue,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  // Handle companion add button press - scroll to make form visible
+  const handleCompanionAddButtonPress = () => {
+    // Delay to ensure the form animation starts
+    setTimeout(() => {
+      if (scrollViewRef.current && companionTitleRef.current) {
+        // Get the layout of the companion title relative to the ScrollView
+        companionTitleRef.current.measureLayout(
+          scrollViewRef.current.getInnerViewRef(),
+          (x, y, width, height) => {
+            // Scroll to position the companion title near the top of the visible area
+            const headerHeight = 100; // Account for header and some padding
+            const targetY = y - headerHeight;
+            
+            scrollViewRef.current?.scrollTo({
+              y: Math.max(0, targetY),
+              animated: true,
+            });
+          },
+          () => {
+            // Fallback if measureLayout fails
+            console.log('measureLayout failed, using alternative scroll method');
+          }
+        );
+      }
+    }, 100);
   };
 
   return (
@@ -277,7 +303,9 @@ export const RecordScreen = () => {
           onBackPress={editingVisit ? () => navigation.goBack() : undefined}
           onMenuOpen={() => setMenuVisible(true)}
         />
+        
         <ScrollView
+          ref={scrollViewRef}
         style={[styles.container, { backgroundColor: theme.colors.background.primary }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -322,44 +350,6 @@ export const RecordScreen = () => {
               {t('record.subtitle')}
             </Text>
             
-            {/* Progress Bar */}
-            <View style={[
-              styles.progressContainer,
-              {
-                gap: safeRSpacing(12),
-              }
-            ]}>
-              <View style={[
-                styles.progressTrack,
-                {
-                  backgroundColor: colors.background.tertiary,
-                  borderRadius: safeRSpacing(8),
-                }
-              ]}>
-                <Animated.View
-                  style={[
-                    styles.progressFill,
-                    {
-                      backgroundColor: colors.purple.bright,
-                      borderRadius: safeRSpacing(8),
-                      width: formProgressAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: ['0%', '100%'],
-                      }),
-                    },
-                  ]}
-                />
-              </View>
-              <Text style={[
-                styles.progressText, 
-                { 
-                  color: theme.colors.text.secondary,
-                  fontSize: safeRFontSize(14),
-                }
-              ]}>
-                {Math.round(completionPercentage * 100)}{t('record.complete')}
-              </Text>
-            </View>
           </View>
         </View>
 
@@ -401,155 +391,219 @@ export const RecordScreen = () => {
               onCompanionCreate={handleCompanionCreate}
               onCompanionDelete={handleCompanionDelete}
               isCreating={isLoading}
+              titleRef={companionTitleRef}
+              onAddButtonPress={handleCompanionAddButtonPress}
             />
           </View>
 
-          {/* Weather Selection */}
-          <View style={[styles.section, { marginBottom: safeRSpacing(24) }]}>
-            <Text style={[
-              styles.sectionTitle, 
-              { 
-                color: theme.colors.text.primary,
-                fontSize: safeRFontSize(20),
+          {/* Advanced Settings Toggle */}
+          <TouchableOpacity 
+            style={[
+              styles.advancedToggle,
+              {
+                backgroundColor: isDark
+                  ? theme.colors.background.secondary
+                  : theme.colors.background.elevated,
+                borderRadius: safeRSpacing(12),
                 marginBottom: safeRSpacing(16),
               }
-            ]}>
-              {t('record.weather')}
-            </Text>
-            <View style={[
-              styles.weatherContainer,
+            ]}
+            onPress={toggleAdvanced}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.advancedToggleContent, { padding: safeRSpacing(16) }]}>
+              <View style={styles.advancedToggleLeft}>
+                <Ionicons 
+                  name="settings-outline" 
+                  size={20} 
+                  color={colors.purple[500]} 
+                  style={{ marginRight: safeRSpacing(12) }}
+                />
+                <Text style={[
+                  styles.advancedToggleText,
+                  { 
+                    color: theme.colors.text.primary,
+                    fontSize: safeRFontSize(16),
+                  }
+                ]}>
+                  {language === 'ja' ? '詳細設定' : 'Advanced Settings'}
+                </Text>
+              </View>
+              <Animated.View
+                style={{
+                  transform: [{
+                    rotate: advancedAnimValue.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['0deg', '180deg'],
+                    }),
+                  }],
+                }}
+              >
+                <Ionicons 
+                  name="chevron-down" 
+                  size={20} 
+                  color={theme.colors.text.secondary} 
+                />
+              </Animated.View>
+            </View>
+          </TouchableOpacity>
+
+          {/* Advanced Settings Content */}
+          <Animated.View
+            style={[
+              styles.advancedContent,
               {
-                gap: safeRSpacing(12),
-                flexDirection: isTabletOrLarger ? 'row' : 'row',
+                height: advancedAnimValue.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 400], // Adjust based on content height
+                }),
+                opacity: advancedAnimValue,
+                overflow: 'hidden',
               }
-            ]}>
-              {getWeatherOptions(t).map((weather) => {
-                const isSelected = selectedWeather === weather.type;
-                return (
-                  <TouchableOpacity
-                    key={weather.type}
-                    onPress={() => handleWeatherSelect(weather.type)}
-                    style={[
-                      styles.weatherButton,
-                      {
-                        backgroundColor: isSelected
-                          ? `${weather.color}20`
-                          : isDark
-                          ? theme.colors.background.secondary
-                          : theme.colors.background.elevated,
-                        borderColor: isSelected ? weather.color : 'transparent',
-                        borderRadius: safeRSpacing(12),
-                      },
-                    ]}
-                  >
-                    <LinearGradient
-                      colors={
-                        isSelected
-                          ? [`${weather.color}30`, `${weather.color}10`]
-                          : ['transparent', 'transparent']
-                      }
+            ]}
+          >
+            {/* Weather Selection */}
+            <View style={[styles.section, { marginBottom: safeRSpacing(24) }]}>
+              <Text style={[
+                styles.sectionTitle, 
+                { 
+                  color: theme.colors.text.primary,
+                  fontSize: safeRFontSize(18),
+                  marginBottom: safeRSpacing(12),
+                }
+              ]}>
+                {t('record.weather')}
+              </Text>
+              <View style={[
+                styles.weatherContainer,
+                {
+                  gap: safeRSpacing(12),
+                  flexDirection: isTabletOrLarger ? 'row' : 'row',
+                }
+              ]}>
+                {getWeatherOptions(t).map((weather) => {
+                  const isSelected = selectedWeather === weather.type;
+                  return (
+                    <TouchableOpacity
+                      key={weather.type}
+                      onPress={() => handleWeatherSelect(weather.type)}
                       style={[
-                        styles.weatherGradient,
+                        styles.weatherButton,
                         {
-                          padding: safeRSpacing(12),
-                          gap: safeRSpacing(8),
-                        }
+                          backgroundColor: isDark
+                            ? theme.colors.background.secondary
+                            : theme.colors.background.elevated,
+                          borderColor: isSelected ? weather.color : colors.utility.borderLight,
+                          borderRadius: safeRSpacing(12),
+                        },
                       ]}
                     >
-                      <Ionicons
-                        name={weather.icon as any}
-                        size={24}
-                        color={isSelected ? weather.color : theme.colors.text.secondary}
-                      />
-                      <Text
+                      <View
                         style={[
-                          styles.weatherLabel,
+                          styles.weatherGradient,
                           {
-                            color: isSelected
-                              ? weather.color
-                              : theme.colors.text.secondary,
-                            fontWeight: isSelected ? '600' : '500',
-                            fontSize: safeRFontSize(14),
-                          },
+                            padding: safeRSpacing(12),
+                            gap: safeRSpacing(8),
+                            backgroundColor: isSelected ? `${weather.color}15` : 'transparent',
+                            borderRadius: safeRSpacing(10),
+                          }
                         ]}
                       >
-                        {weather.label}
-                      </Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                );
-              })}
+                        <Ionicons
+                          name={weather.icon as any}
+                          size={24}
+                          color={isSelected ? weather.color : theme.colors.text.secondary}
+                        />
+                        <Text
+                          style={[
+                            styles.weatherLabel,
+                            {
+                              color: isSelected
+                                ? weather.color
+                                : theme.colors.text.secondary,
+                              fontWeight: isSelected ? '600' : '500',
+                              fontSize: safeRFontSize(14),
+                            },
+                          ]}
+                        >
+                          {weather.label}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
-          </View>
 
-          {/* Notes Section */}
-          <View style={[styles.section, { marginBottom: safeRSpacing(24) }]}>
-            <Text style={[
-              styles.sectionTitle, 
-              { 
-                color: theme.colors.text.primary,
-                fontSize: safeRFontSize(20),
-                marginBottom: safeRSpacing(16),
-              }
-            ]}>
-              {t('record.notes')}
-            </Text>
-            <View
-              style={[
-                styles.notesContainer,
-                {
-                  backgroundColor: isDark
-                    ? theme.colors.background.secondary
-                    : theme.colors.background.elevated,
-                  borderRadius: safeRSpacing(12),
-                },
-              ]}
-            >
-              <LinearGradient
-                colors={
-                  notes.trim()
-                    ? ['rgba(147, 51, 234, 0.1)', 'rgba(168, 85, 247, 0.05)']
-                    : ['transparent', 'transparent']
+            {/* Notes Section */}
+            <View style={[styles.section, { marginBottom: safeRSpacing(24) }]}>
+              <Text style={[
+                styles.sectionTitle, 
+                { 
+                  color: theme.colors.text.primary,
+                  fontSize: safeRFontSize(18),
+                  marginBottom: safeRSpacing(12),
                 }
+              ]}>
+                {t('record.notes')}
+              </Text>
+              <View
                 style={[
-                  styles.notesGradient,
+                  styles.notesContainer,
                   {
-                    padding: safeRSpacing(16),
-                  }
+                    backgroundColor: isDark
+                      ? theme.colors.background.secondary
+                      : theme.colors.background.elevated,
+                    borderRadius: safeRSpacing(12),
+                  },
                 ]}
               >
-                <TextInput
+                <LinearGradient
+                  colors={
+                    notes.trim()
+                      ? ['rgba(147, 51, 234, 0.1)', 'rgba(168, 85, 247, 0.05)']
+                      : ['transparent', 'transparent']
+                  }
                   style={[
-                    styles.notesInput, 
-                    { 
-                      color: theme.colors.text.primary,
-                      fontSize: safeRFontSize(16),
-                      marginBottom: safeRSpacing(8),
+                    styles.notesGradient,
+                    {
+                      padding: safeRSpacing(16),
                     }
                   ]}
-                  placeholder={t('record.notesPlaceholder')}
-                  placeholderTextColor={theme.colors.text.secondary}
-                  value={notes}
-                  onChangeText={setNotes}
-                  multiline
-                  numberOfLines={4}
-                  textAlignVertical="top"
-                  maxLength={500}
-                />
-                <View style={styles.notesFooter}>
-                  <Text style={[
-                    styles.characterCount, 
-                    { 
-                      color: theme.colors.text.secondary,
-                      fontSize: safeRFontSize(12),
-                    }
-                  ]}>
-                    {notes.length}/500
-                  </Text>
-                </View>
-              </LinearGradient>
+                >
+                  <TextInput
+                    style={[
+                      styles.notesInput, 
+                      { 
+                        color: theme.colors.text.primary,
+                        fontSize: safeRFontSize(16),
+                        marginBottom: safeRSpacing(8),
+                      }
+                    ]}
+                    placeholder={t('record.notesPlaceholder')}
+                    placeholderTextColor={theme.colors.text.secondary}
+                    value={notes}
+                    onChangeText={setNotes}
+                    multiline
+                    numberOfLines={4}
+                    textAlignVertical="top"
+                    maxLength={500}
+                  />
+                  <View style={styles.notesFooter}>
+                    <Text style={[
+                      styles.characterCount, 
+                      { 
+                        color: theme.colors.text.secondary,
+                        fontSize: safeRFontSize(12),
+                      }
+                    ]}>
+                      {notes.length}/500
+                    </Text>
+                  </View>
+                </LinearGradient>
+              </View>
             </View>
-          </View>
+          </Animated.View>
 
           {/* Save Button */}
           <Animated.View
@@ -626,6 +680,14 @@ export const RecordScreen = () => {
         visible={menuVisible}
         onClose={() => setMenuVisible(false)}
       />
+
+      <SuccessModal
+        visible={showSuccessModal}
+        title={t('record.success')}
+        message={t('record.successMessage')}
+        onConfirm={handleSuccessConfirm}
+        confirmText={language === 'ja' ? '詳細を見る' : 'View Details'}
+      />
     </SwipeableScreen>
   );
 };
@@ -650,41 +712,37 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
   },
-  progressContainer: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  progressTrack: {
-    width: '100%',
-    height: 8,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-  },
-  progressText: {
-    fontWeight: '600',
-  },
   formContainer: {},
   section: {},
   sectionTitle: {
     fontWeight: '600',
+  },
+  advancedToggle: {
+    borderWidth: 1,
+    borderColor: 'rgba(168, 85, 247, 0.2)',
+  },
+  advancedToggleContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  advancedToggleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  advancedToggleText: {
+    fontWeight: '600',
+  },
+  advancedContent: {
+    marginBottom: 16,
   },
   weatherContainer: {
     flexDirection: 'row',
   },
   weatherButton: {
     flex: 1,
-    borderWidth: 2,
+    borderWidth: 1,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
   },
   weatherGradient: {
     alignItems: 'center',

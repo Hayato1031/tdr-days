@@ -31,6 +31,30 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const isDark = theme.mode === 'dark';
+  
+  // Precise calculation accounting for tab bar padding
+  const tabCount = state.routes.length;
+  const tabBarPadding = spacing[2]; // From paddingHorizontal in styles
+  const availableWidth = width - (tabBarPadding * 2);
+  const tabWidth = availableWidth / tabCount;
+  const indicatorWidth = 40; // Fixed width to match icon container
+  
+  // Calculate initial position for first tab (including left padding)
+  const initialPosition = tabBarPadding + (tabWidth - indicatorWidth) / 2;
+  const indicatorPosition = useRef(new Animated.Value(initialPosition)).current;
+
+  useEffect(() => {
+    // Calculate exact center position for each tab (including left padding)
+    const tabCenterOffset = (tabWidth - indicatorWidth) / 2;
+    const targetPosition = tabBarPadding + (state.index * tabWidth) + tabCenterOffset;
+    
+    Animated.spring(indicatorPosition, {
+      toValue: targetPosition,
+      useNativeDriver: true,
+      tension: 68,
+      friction: 12,
+    }).start();
+  }, [state.index, tabWidth, tabBarPadding]);
 
   return (
     <View style={[
@@ -41,6 +65,15 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
         borderTopColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
       }
     ]}>
+      <Animated.View
+        style={[
+          styles.activeIndicator,
+          {
+            width: indicatorWidth,
+            transform: [{ translateX: indicatorPosition }],
+          },
+        ]}
+      />
       <View style={styles.tabBar}>
         {state.routes.map((route: any, index: number) => {
           const { options } = descriptors[route.key];
@@ -71,6 +104,9 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
                 <View style={[
                   styles.iconContainer,
                   isFocused && styles.iconContainerActive,
+                  {
+                    backgroundColor: isFocused ? colors.purple[100] : 'transparent',
+                  }
                 ]}>
                   <Ionicons
                     name={options.tabBarIcon}
@@ -89,7 +125,7 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
                       color: isFocused
                         ? colors.purple[600]
                         : theme.colors.text.secondary,
-                      fontWeight: isFocused ? '600' : '500',
+                      fontWeight: isFocused ? '700' : '500',
                     },
                   ]}
                 >
@@ -175,6 +211,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
   },
+  activeIndicator: {
+    position: 'absolute',
+    top: 0,
+    height: 3,
+    backgroundColor: colors.purple[600],
+    borderBottomLeftRadius: 3,
+    borderBottomRightRadius: 3,
+  },
   tabBar: {
     flexDirection: 'row',
     height: Platform.OS === 'ios' ? 65 : 60,
@@ -193,9 +237,14 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     marginBottom: 2,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   iconContainerActive: {
-    // Material design ripple effect could be added here
+    transform: [{ scale: 1.1 }],
   },
   tabLabel: {
     fontSize: 11,

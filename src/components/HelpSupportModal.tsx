@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { colors } from '../styles/colors';
+import { APP_CONFIG } from '../constants/app';
 
 interface HelpSupportModalProps {
   visible: boolean;
@@ -228,7 +229,7 @@ export const HelpSupportModal: React.FC<HelpSupportModalProps> = ({
                       バージョン
                     </Text>
                     <Text style={[styles.appInfoValue, { color: theme.colors.text.primary }]}>
-                      1.0.0
+                      {APP_CONFIG.VERSION}
                     </Text>
                   </View>
                   <View style={styles.appInfoRow}>
@@ -236,7 +237,7 @@ export const HelpSupportModal: React.FC<HelpSupportModalProps> = ({
                       開発者
                     </Text>
                     <Text style={[styles.appInfoValue, { color: theme.colors.text.primary }]}>
-                      TDR Days Team
+                      {APP_CONFIG.TEAM_NAME}
                     </Text>
                   </View>
                 </View>
