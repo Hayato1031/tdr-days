@@ -16,28 +16,29 @@ export enum ActionCategory {
   SHOW = 'SHOW',
   GREETING = 'GREETING',
   SHOPPING = 'SHOPPING',
+  CUSTOM = 'CUSTOM',
 }
 
 // Area definitions for both parks
 export enum LandArea {
-  WORLD_BAZAAR = 'WORLD_BAZAAR',
-  ADVENTURELAND = 'ADVENTURELAND',
-  WESTERNLAND = 'WESTERNLAND',
-  CRITTER_COUNTRY = 'CRITTER_COUNTRY',
-  FANTASYLAND = 'FANTASYLAND',
-  TOONTOWN = 'TOONTOWN',
-  TOMORROWLAND = 'TOMORROWLAND',
+  WORLD_BAZAAR = 'ワールドバザール',
+  ADVENTURELAND = 'アドベンチャーランド',
+  WESTERNLAND = 'ウエスタンランド',
+  CRITTER_COUNTRY = 'クリッターカントリー',
+  FANTASYLAND = 'ファンタジーランド',
+  TOONTOWN = 'トゥーンタウン',
+  TOMORROWLAND = 'トゥモローランド',
 }
 
 export enum SeaArea {
-  MEDITERRANEAN_HARBOR = 'MEDITERRANEAN_HARBOR',
-  AMERICAN_WATERFRONT = 'AMERICAN_WATERFRONT',
-  PORT_DISCOVERY = 'PORT_DISCOVERY',
-  LOST_RIVER_DELTA = 'LOST_RIVER_DELTA',
-  ARABIAN_COAST = 'ARABIAN_COAST',
-  MERMAID_LAGOON = 'MERMAID_LAGOON',
-  MYSTERIOUS_ISLAND = 'MYSTERIOUS_ISLAND',
-  FANTASY_SPRINGS = 'FANTASY_SPRINGS',
+  MEDITERRANEAN_HARBOR = 'メディテレーニアンハーバー',
+  AMERICAN_WATERFRONT = 'アメリカンウォーターフロント',
+  PORT_DISCOVERY = 'ポートディスカバリー',
+  LOST_RIVER_DELTA = 'ロストリバーデルタ',
+  ARABIAN_COAST = 'アラビアンコースト',
+  MERMAID_LAGOON = 'マーメイドラグーン',
+  MYSTERIOUS_ISLAND = 'ミステリアスアイランド',
+  FANTASY_SPRINGS = 'ファンタジースプリングス',
 }
 
 export type ParkArea = LandArea | SeaArea;
@@ -91,14 +92,13 @@ export interface TimelineAction extends BaseModel {
   visitId: string;
   category: ActionCategory;
   area: ParkArea;
-  locationName: string; // e.g., "Space Mountain", "Queen of Hearts Banquet Hall"
+  locationName?: string; // e.g., "Space Mountain", "Queen of Hearts Banquet Hall" - optional for GREETING and CUSTOM
   locationId?: string; // For future preset location reference
   time: Date;
   duration?: number; // Duration in minutes
   waitTime?: number; // Wait time in minutes (for attractions)
   notes?: string;
   photos: Photo[];
-  rating?: 1 | 2 | 3 | 4 | 5;
   // For shopping actions
   purchaseAmount?: number;
   purchasedItems?: string[];
@@ -107,6 +107,8 @@ export interface TimelineAction extends BaseModel {
   // For show/greeting actions
   performerNames?: string[];
   showTime?: string; // Specific show time if applicable
+  // For custom actions
+  customTitle?: string; // Title for custom actions when locationName is not used
   // Sorting support
   sortOrder?: number;
 }

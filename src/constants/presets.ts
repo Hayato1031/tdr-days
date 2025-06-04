@@ -1,2158 +1,365 @@
-/**
- * Comprehensive preset data for Tokyo Disney Resort
- * Includes attractions, restaurants, shops, and greetings organized by area
- */
-
-import { 
-  ActionCategory, 
-  ParkType, 
-  LandArea, 
-  SeaArea, 
-  ParkArea 
-} from '../types/models';
-
-// Base preset item interface
-interface PresetItem {
-  id: string;
-  name: string;
-  nameEn?: string;
-  category: ActionCategory;
-  parkType: ParkType;
-  area: ParkArea;
-  tags?: string[];
-  isPopular?: boolean;
-  isNew?: boolean;
-}
-
-// Attractions preset data
 export const PRESET_ATTRACTIONS_BY_AREA = {
-  // Tokyo Disneyland Attractions
-  [LandArea.WORLD_BAZAAR]: [
-    {
-      id: 'omnibus',
-      name: 'オムニバス',
-      nameEn: 'Omnibus',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.WORLD_BAZAAR,
-      tags: ['transport', 'gentle'],
-    },
-    {
-      id: 'penny_arcade',
-      name: 'ペニーアーケード',
-      nameEn: 'Penny Arcade',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.WORLD_BAZAAR,
-      tags: ['interactive', 'arcade'],
-    },
-  ],
-
-  [LandArea.ADVENTURELAND]: [
-    {
-      id: 'jungle_cruise',
-      name: 'ジャングルクルーズ：ワイルドライフ・エクスペディション',
-      nameEn: 'Jungle Cruise: Wildlife Expeditions',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.ADVENTURELAND,
-      tags: ['boat', 'classic', 'animals'],
-      isPopular: true,
-    },
-    {
-      id: 'pirates_caribbean',
-      name: 'カリブの海賊',
-      nameEn: 'Pirates of the Caribbean',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.ADVENTURELAND,
-      tags: ['boat', 'dark ride', 'classic'],
-      isPopular: true,
-    },
-    {
-      id: 'western_river_railroad',
-      name: 'ウエスタンリバー鉄道',
-      nameEn: 'Western River Railroad',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.ADVENTURELAND,
-      tags: ['train', 'gentle', 'scenic'],
-    },
-    {
-      id: 'swiss_family_treehouse',
-      name: 'スイスファミリー・ツリーハウス',
-      nameEn: 'Swiss Family Treehouse',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.ADVENTURELAND,
-      tags: ['walkthrough', 'treehouse'],
-    },
-    {
-      id: 'tiki_room',
-      name: '魅惑のチキルーム：スティッチ・プレゼンツ"アロハ・エ・コモ・マイ!"',
-      nameEn: 'The Enchanted Tiki Room: Stitch Presents "Aloha E Komo Mai!"',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.ADVENTURELAND,
-      tags: ['show', 'audio-animatronics', 'stitch'],
-    },
-  ],
-
-  [LandArea.WESTERNLAND]: [
-    {
-      id: 'big_thunder_mountain',
-      name: 'ビッグサンダーマウンテン',
-      nameEn: 'Big Thunder Mountain',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.WESTERNLAND,
-      tags: ['roller coaster', 'thrill', 'mountain'],
-      isPopular: true,
-    },
-    {
-      id: 'splash_mountain',
-      name: 'スプラッシュマウンテン',
-      nameEn: 'Splash Mountain',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.WESTERNLAND,
-      tags: ['water ride', 'log flume', 'thrill'],
-      isPopular: true,
-    },
-    {
-      id: 'country_bear_theater',
-      name: 'カントリーベア・シアター',
-      nameEn: 'Country Bear Theater',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.WESTERNLAND,
-      tags: ['show', 'audio-animatronics', 'music'],
-    },
-    {
-      id: 'tom_sawyer_island',
-      name: 'トムソーヤ島いかだ',
-      nameEn: 'Tom Sawyer Island Rafts',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.WESTERNLAND,
-      tags: ['island', 'exploration', 'raft'],
-    },
-    {
-      id: 'shooting_gallery',
-      name: 'ウエスタンランド・シューティングギャラリー',
-      nameEn: 'Westernland Shooting Gallery',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.WESTERNLAND,
-      tags: ['interactive', 'shooting', 'arcade'],
-    },
-  ],
-
-  [LandArea.CRITTER_COUNTRY]: [
-    {
-      id: 'pooh_hunny_hunt',
-      name: 'プーさんのハニーハント',
-      nameEn: 'Pooh\'s Hunny Hunt',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.CRITTER_COUNTRY,
-      tags: ['dark ride', 'trackless', 'winnie the pooh'],
-      isPopular: true,
-    },
-    {
-      id: 'beaver_brothers',
-      name: 'ビーバーブラザーズのカヌー探険',
-      nameEn: 'Beaver Brothers Explorer Canoes',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.CRITTER_COUNTRY,
-      tags: ['canoe', 'paddle', 'river'],
-    },
-  ],
-
-  [LandArea.FANTASYLAND]: [
-    {
-      id: 'haunted_mansion',
-      name: 'ホーンテッドマンション',
-      nameEn: 'Haunted Mansion',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['dark ride', 'ghost', 'classic'],
-      isPopular: true,
-    },
-    {
-      id: 'small_world',
-      name: 'イッツ・ア・スモールワールド',
-      nameEn: 'It\'s a Small World',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['boat ride', 'classic', 'music'],
-      isPopular: true,
-    },
-    {
-      id: 'peter_pan',
-      name: 'ピーターパン空の旅',
-      nameEn: 'Peter Pan\'s Flight',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['dark ride', 'flying', 'peter pan'],
-      isPopular: true,
-    },
-    {
-      id: 'snow_white',
-      name: '白雪姫と七人のこびと',
-      nameEn: 'Snow White\'s Adventures',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['dark ride', 'snow white'],
-    },
-    {
-      id: 'pinocchio',
-      name: 'ピノキオの冒険旅行',
-      nameEn: 'Pinocchio\'s Daring Journey',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['dark ride', 'pinocchio'],
-    },
-    {
-      id: 'dumbo',
-      name: 'ダンボ',
-      nameEn: 'Dumbo the Flying Elephant',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['flying', 'dumbo', 'family'],
-    },
-    {
-      id: 'alice_tea_party',
-      name: 'アリスのティーパーティー',
-      nameEn: 'Alice\'s Tea Party',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['spinning', 'alice', 'tea cups'],
-    },
-    {
-      id: 'mad_tea_party',
-      name: 'マッドハッター',
-      nameEn: 'Mad Hatter\'s Tea Cups',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['spinning', 'alice', 'tea cups'],
-    },
-    {
-      id: 'castle_carrousel',
-      name: 'キャッスルカルーセル',
-      nameEn: 'Castle Carrousel',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['carousel', 'classic', 'horses'],
-    },
-    {
-      id: 'beauty_beast',
-      name: '美女と野獣"魔法のものがたり"',
-      nameEn: 'Beauty and the Beast "Magical Story"',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['dark ride', 'trackless', 'beauty and the beast'],
-      isPopular: true,
-      isNew: true,
-    },
-    {
-      id: 'enchanted_tale',
-      name: 'エンチャンテッドテイル・オブ・ビューティー・アンド・ザ・ビースト',
-      nameEn: 'Enchanted Tale of Beauty and the Beast',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['walkthrough', 'beauty and the beast'],
-    },
-  ],
-
-  [LandArea.TOONTOWN]: [
-    {
-      id: 'roger_rabbit',
-      name: 'ロジャーラビットのカートゥーンスピン',
-      nameEn: 'Roger Rabbit\'s Car Toon Spin',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.TOONTOWN,
-      tags: ['dark ride', 'spinning', 'roger rabbit'],
-    },
-    {
-      id: 'gadget_coaster',
-      name: 'ガジェットのゴーコースター',
-      nameEn: 'Gadget\'s Go Coaster',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.TOONTOWN,
-      tags: ['roller coaster', 'family', 'gadget'],
-    },
-    {
-      id: 'chip_dale_treehouse',
-      name: 'チップとデールのツリーハウス',
-      nameEn: 'Chip \'n Dale Treehouse',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.TOONTOWN,
-      tags: ['walkthrough', 'chip and dale', 'treehouse'],
-    },
-    {
-      id: 'mickey_house',
-      name: 'ミッキーの家とミート・ミッキー',
-      nameEn: 'Mickey\'s House and Meet Mickey',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.TOONTOWN,
-      tags: ['meet and greet', 'mickey', 'walkthrough'],
-      isPopular: true,
-    },
-    {
-      id: 'minnie_house',
-      name: 'ミニーの家',
-      nameEn: 'Minnie\'s House',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.TOONTOWN,
-      tags: ['walkthrough', 'minnie'],
-    },
-    {
-      id: 'donald_boat',
-      name: 'ドナルドのボート',
-      nameEn: 'Donald\'s Boat',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.TOONTOWN,
-      tags: ['walkthrough', 'donald', 'boat'],
-    },
-    {
-      id: 'goofy_paint_playhouse',
-      name: 'グーフィーのペイント&プレイハウス',
-      nameEn: 'Goofy\'s Paint \'n\' Play House',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.TOONTOWN,
-      tags: ['interactive', 'goofy', 'play'],
-    },
-  ],
-
-  [LandArea.TOMORROWLAND]: [
-    {
-      id: 'space_mountain',
-      name: 'スペースマウンテン',
-      nameEn: 'Space Mountain',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.TOMORROWLAND,
-      tags: ['roller coaster', 'indoor', 'dark', 'thrill'],
-      isPopular: true,
-    },
-    {
-      id: 'buzz_lightyear',
-      name: 'バズ・ライトイヤーのアストロブラスター',
-      nameEn: 'Buzz Lightyear\'s Astro Blasters',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.TOMORROWLAND,
-      tags: ['interactive', 'shooting', 'toy story'],
-      isPopular: true,
-    },
-    {
-      id: 'monsters_inc',
-      name: 'モンスターズ・インク"ライド＆ゴーシーク!"',
-      nameEn: 'Monsters, Inc. Ride & Go Seek!',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.TOMORROWLAND,
-      tags: ['dark ride', 'interactive', 'monsters inc'],
-      isPopular: true,
-    },
-    {
-      id: 'star_tours',
-      name: 'スター・ツアーズ：ザ・アドベンチャーズ・コンティニュー',
-      nameEn: 'Star Tours: The Adventures Continue',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.TOMORROWLAND,
-      tags: ['simulator', 'star wars', '3d'],
-      isPopular: true,
-    },
-    {
-      id: 'stitch_encounter',
-      name: 'スティッチ・エンカウンター',
-      nameEn: 'Stitch Encounter',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.TOMORROWLAND,
-      tags: ['interactive show', 'stitch'],
-    },
-    {
-      id: 'carousel_progress',
-      name: 'カルーセル・オブ・プログレス',
-      nameEn: 'Carousel of Progress',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.LAND,
-      area: LandArea.TOMORROWLAND,
-      tags: ['theater', 'rotating', 'classic'],
-    },
-  ],
-
-  // Tokyo DisneySea Attractions
-  [SeaArea.MEDITERRANEAN_HARBOR]: [
-    {
-      id: 'fortress_explorations',
-      name: 'フォートレス・エクスプロレーション',
-      nameEn: 'Fortress Explorations',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.MEDITERRANEAN_HARBOR,
-      tags: ['walkthrough', 'exploration', 'interactive'],
-    },
-    {
-      id: 'venetian_gondolas',
-      name: 'ヴェネツィアン・ゴンドラ',
-      nameEn: 'Venetian Gondolas',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.MEDITERRANEAN_HARBOR,
-      tags: ['boat ride', 'gentle', 'romantic'],
-    },
-    {
-      id: 'transit_steamer_line',
-      name: 'ディズニーシー・トランジットスチーマーライン',
-      nameEn: 'DisneySea Transit Steamer Line',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.MEDITERRANEAN_HARBOR,
-      tags: ['transport', 'steamer', 'harbor'],
-    },
-  ],
-
-  [SeaArea.AMERICAN_WATERFRONT]: [
-    {
-      id: 'tower_of_terror',
-      name: 'タワー・オブ・テラー',
-      nameEn: 'Tower of Terror',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.AMERICAN_WATERFRONT,
-      tags: ['drop tower', 'thrill', 'haunted'],
-      isPopular: true,
-    },
-    {
-      id: 'toy_story_mania',
-      name: 'トイ・ストーリー・マニア!',
-      nameEn: 'Toy Story Midway Mania!',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.AMERICAN_WATERFRONT,
-      tags: ['interactive', 'shooting', '3d', 'toy story'],
-      isPopular: true,
-    },
-    {
-      id: 'turtle_talk',
-      name: 'タートル・トーク',
-      nameEn: 'Turtle Talk',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.AMERICAN_WATERFRONT,
-      tags: ['interactive show', 'finding nemo'],
-    },
-    {
-      id: 'electric_railway',
-      name: 'ディズニーシー・エレクトリックレイルウェイ',
-      nameEn: 'DisneySea Electric Railway',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.AMERICAN_WATERFRONT,
-      tags: ['transport', 'train', 'elevated'],
-    },
-    {
-      id: 'big_city_vehicles',
-      name: 'ビッグシティ・ヴィークル',
-      nameEn: 'Big City Vehicles',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.AMERICAN_WATERFRONT,
-      tags: ['transport', 'vintage', 'car'],
-    },
-  ],
-
-  [SeaArea.PORT_DISCOVERY]: [
-    {
-      id: 'journey_center_earth',
-      name: 'センター・オブ・ジ・アース',
-      nameEn: 'Journey to the Center of the Earth',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.PORT_DISCOVERY,
-      tags: ['roller coaster', 'thrill', 'indoor'],
-      isPopular: true,
-    },
-    {
-      id: 'nemo_friends_searider',
-      name: 'ニモ&フレンズ・シーライダー',
-      nameEn: 'Nemo & Friends SeaRider',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.PORT_DISCOVERY,
-      tags: ['simulator', 'finding nemo', 'underwater'],
-    },
-    {
-      id: 'stormrider',
-      name: 'ストームライダー',
-      nameEn: 'StormRider',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.PORT_DISCOVERY,
-      tags: ['simulator', 'weather', 'closed'],
-    },
-    {
-      id: 'aquatopia',
-      name: 'アクアトピア',
-      nameEn: 'Aquatopia',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.PORT_DISCOVERY,
-      tags: ['water ride', 'trackless', 'spinning'],
-    },
-  ],
-
-  [SeaArea.LOST_RIVER_DELTA]: [
-    {
-      id: 'indiana_jones',
-      name: 'インディ・ジョーンズ・アドベンチャー：クリスタルスカルの魔宮',
-      nameEn: 'Indiana Jones Adventure: Temple of the Crystal Skull',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.LOST_RIVER_DELTA,
-      tags: ['dark ride', 'thrill', 'indiana jones'],
-      isPopular: true,
-    },
-    {
-      id: 'raging_spirits',
-      name: 'レイジングスピリッツ',
-      nameEn: 'Raging Spirits',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.LOST_RIVER_DELTA,
-      tags: ['roller coaster', 'looping', 'thrill'],
-    },
-  ],
-
-  [SeaArea.ARABIAN_COAST]: [
-    {
-      id: 'sindbad_storybook_voyage',
-      name: 'シンドバッド・ストーリーブック・ヴォヤッジ',
-      nameEn: 'Sindbad\'s Storybook Voyage',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.ARABIAN_COAST,
-      tags: ['boat ride', 'dark ride', 'sindbad'],
-    },
-    {
-      id: 'magic_lamp_theater',
-      name: 'マジックランプシアター',
-      nameEn: 'Magic Lamp Theater',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.ARABIAN_COAST,
-      tags: ['3d show', 'aladdin', 'theater'],
-      isPopular: true,
-    },
-    {
-      id: 'flying_carpets',
-      name: 'ジャスミンのフライングカーペット',
-      nameEn: 'Jasmine\'s Flying Carpets',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.ARABIAN_COAST,
-      tags: ['flying', 'aladdin', 'family'],
-    },
-    {
-      id: 'caravan_carousel',
-      name: 'キャラバンカルーセル',
-      nameEn: 'Caravan Carousel',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.ARABIAN_COAST,
-      tags: ['carousel', 'genies', 'arabian'],
-    },
-  ],
-
-  [SeaArea.MERMAID_LAGOON]: [
-    {
-      id: 'mermaid_lagoon_theater',
-      name: 'マーメイドラグーンシアター',
-      nameEn: 'Mermaid Lagoon Theater',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.MERMAID_LAGOON,
-      tags: ['theater show', 'little mermaid', 'underwater'],
-      isPopular: true,
-    },
-    {
-      id: 'ariel_playground',
-      name: 'アリエルのプレイグラウンド',
-      nameEn: 'Ariel\'s Playground',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.MERMAID_LAGOON,
-      tags: ['playground', 'kids', 'little mermaid'],
-    },
-    {
-      id: 'flounder_flying_fish_coaster',
-      name: 'フランダーのフライングフィッシュコースター',
-      nameEn: 'Flounder\'s Flying Fish Coaster',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.MERMAID_LAGOON,
-      tags: ['roller coaster', 'family', 'flounder'],
-    },
-    {
-      id: 'scuttle_scooters',
-      name: 'スカットルのスクーター',
-      nameEn: 'Scuttle\'s Scooters',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.MERMAID_LAGOON,
-      tags: ['spinning', 'scuttle', 'seagull'],
-    },
-    {
-      id: 'sebastians_calypso_kitchen',
-      name: 'セバスチャンのカリプソキッチン',
-      nameEn: 'Sebastian\'s Calypso Kitchen',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.MERMAID_LAGOON,
-      tags: ['spinning', 'sebastian', 'crab'],
-    },
-    {
-      id: 'jumpin_jellyfish',
-      name: 'ジャンピン・ジェリーフィッシュ',
-      nameEn: 'Jumpin\' Jellyfish',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.MERMAID_LAGOON,
-      tags: ['bounce', 'jellyfish', 'kids'],
-    },
-    {
-      id: 'blowfish_balloon_race',
-      name: 'ブローフィッシュ・バルーンレース',
-      nameEn: 'Blowfish Balloon Race',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.MERMAID_LAGOON,
-      tags: ['balloon', 'blowfish', 'flying'],
-    },
-  ],
-
-  [SeaArea.MYSTERIOUS_ISLAND]: [
-    {
-      id: 'journey_center_earth_mi',
-      name: 'センター・オブ・ジ・アース',
-      nameEn: 'Journey to the Center of the Earth',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.MYSTERIOUS_ISLAND,
-      tags: ['roller coaster', 'thrill', 'volcano'],
-      isPopular: true,
-    },
-    {
-      id: '20000_leagues',
-      name: '海底2万マイル',
-      nameEn: '20,000 Leagues Under the Sea',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.MYSTERIOUS_ISLAND,
-      tags: ['submarine', 'dark ride', 'underwater'],
-      isPopular: true,
-    },
-  ],
-
-  [SeaArea.FANTASY_SPRINGS]: [
-    {
-      id: 'frozen_kingdom',
-      name: 'アナとエルサのフローズンジャーニー',
-      nameEn: 'Anna and Elsa\'s Frozen Journey',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.FANTASY_SPRINGS,
-      tags: ['boat ride', 'frozen', 'dark ride'],
-      isPopular: true,
-      isNew: true,
-    },
-    {
-      id: 'tangled_tower',
-      name: 'ラプンツェルのランタンフェスティバル',
-      nameEn: 'Rapunzel\'s Lantern Festival',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.FANTASY_SPRINGS,
-      tags: ['boat ride', 'tangled', 'lanterns'],
-      isPopular: true,
-      isNew: true,
-    },
-    {
-      id: 'peter_pan_neverlandadventure',
-      name: 'ピーターパンのネバーランドアドベンチャー',
-      nameEn: 'Peter Pan\'s Neverland Adventure',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.FANTASY_SPRINGS,
-      tags: ['dark ride', 'peter pan', 'flying'],
-      isPopular: true,
-      isNew: true,
-    },
-    {
-      id: 'fairy_tinkerbell_busy_buggy',
-      name: 'フェアリー・ティンカーベルのビジーバギー',
-      nameEn: 'Fairy Tinker Bell\'s Busy Buggy',
-      category: ActionCategory.ATTRACTION,
-      parkType: ParkType.SEA,
-      area: SeaArea.FANTASY_SPRINGS,
-      tags: ['family ride', 'tinkerbell', 'spinning'],
-      isNew: true,
-    },
-  ],
+  land: {
+    'ワールドバザール': [
+      'オムニバス',
+      'ペニーアーケード'
+    ],
+    'アドベンチャーランド': [
+      'ウェスタンリバー鉄道',
+      'カリブの海賊',
+      'ジャングルクルーズ：ワイルドライフ・エクスペディション',
+      'スイスファミリー・ツリーハウス',
+      '魅惑のチキルーム：スティッチ・プレゼンツ"アロハ・エ・コモ・マイ！"'
+    ],
+    'ウエスタンランド': [
+      'ウエスタンランド・シューティングギャラリー',
+      'カントリーベア・シアター',
+      '蒸気船マークトウェイン号',
+      'トムソーヤ島いかだ',
+      'ビッグサンダー・マウンテン'
+    ],
+    'クリッターカントリー': [
+      'スプラッシュ・マウンテン',
+      'ビーバーブラザーズのカヌー探険'
+    ],
+    'ファンタジーランド': [
+      '白雪姫と七人のこびと',
+      'ピノキオの冒険旅行',
+      'ピーターパン空の旅',
+      'プーさんのハニーハント',
+      'イッツ・ア・スモールワールド',
+      '空飛ぶダンボ',
+      'キャッスルカルーセル',
+      'シンデレラのフェアリーテイル・ホール',
+      'ホーンテッドマンション',
+      'アリスのティーパーティー',
+      'ミッキーのフィルハーマジック',
+      '美女と野獣"魔法のものがたり"'
+    ],
+    'トゥーンタウン': [
+      'ガジェットのゴーコースター',
+      'グーフィーのペイント＆プレイハウス',
+      'チップとデールのツリーハウス',
+      'トゥーンパーク',
+      'ドナルドのボート'
+    ],
+    'トゥモローランド': [
+      'スター・ツアーズ：ザ・アドベンチャーズ・コンティニュー',
+      'スティッチ・エンカウンター',
+      'ベイマックスのハッピーライド',
+      'モンスターズ・インク"ライド＆ゴーシーク！"'
+    ]
+  },
+  sea: {
+    'メディテレーニアンハーバー': [
+      'ソアリン：ファンタスティック・フライト',
+      'ディズニーシー・トランジットスチーマーライン',
+      'フォートレス・エクスプロレーション',
+      'ヴェネツィアン・ゴンドラ'
+    ],
+    'アメリカンウォーターフロント': [
+      'タワー・オブ・テラー',
+      'トイ・ストーリー・マニア！',
+      'タートル・トーク',
+      'ビッグシティ・ヴィークル',
+      'ディズニーシー・エレクトリックレールウェイ'
+    ],
+    'ポートディスカバリー': [
+      'アクアトピア',
+      'ニモ＆フレンズ・シーライダー',
+      'ディズニーシー・エレクトリックレールウェイ'
+    ],
+    'ロストリバーデルタ': [
+      'インディ・ジョーンズ・アドベンチャー：クリスタルスカルの魔宮',
+      'レイジングスピリッツ',
+      'ディズニーシー・トランジットスチーマーライン'
+    ],
+    'アラビアンコースト': [
+      'シンドバッド・ストーリーブック・ヴォヤッジ',
+      'マジックランプシアター',
+      'ジャスミンのフライングカーペット',
+      'キャラバンカルーセル'
+    ],
+    'マーメイドラグーン': [
+      'フランダーのフライングフィッシュコースター',
+      'スカットルのスクーター',
+      'ジャンピン・ジェリーフィッシュ',
+      'ブローフィッシュ・バルーンレース',
+      'ワールプール',
+      'アリエルのプレイグラウンド',
+      'マーメイドラグーンシアター'
+    ],
+    'ミステリアスアイランド': [
+      '海底2万マイル',
+      'センター・オブ・ジ・アース'
+    ],
+    'ファンタジースプリングス': [
+      'ピーターパン空の旅（仮称）',
+      'ティンカー・ベルのビジーバギー',
+      'アナとエルサのフローズンジャーニー',
+      'ラプンツェルのランタンフェスティバル'
+    ]
+  }
 };
 
-// Restaurants preset data
 export const PRESET_RESTAURANTS_BY_AREA = {
-  // Tokyo Disneyland Restaurants
-  [LandArea.WORLD_BAZAAR]: [
-    {
-      id: 'crystal_palace_restaurant',
-      name: 'クリスタルパレス・レストラン',
-      nameEn: 'Crystal Palace Restaurant',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.WORLD_BAZAAR,
-      tags: ['buffet', 'character dining', 'table service'],
-      isPopular: true,
-    },
-    {
-      id: 'eastside_cafe',
-      name: 'イーストサイド・カフェ',
-      nameEn: 'Eastside Cafe',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.WORLD_BAZAAR,
-      tags: ['pasta', 'italian', 'table service'],
-    },
-    {
-      id: 'center_street_coffeehouse',
-      name: 'センターストリート・コーヒーハウス',
-      nameEn: 'Center Street Coffeehouse',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.WORLD_BAZAAR,
-      tags: ['coffee', 'dessert', 'quick service'],
-    },
-    {
-      id: 'sweetheart_cafe',
-      name: 'スウィートハート・カフェ',
-      nameEn: 'Sweetheart Cafe',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.WORLD_BAZAAR,
-      tags: ['sweets', 'pastry', 'quick service'],
-    },
-    {
-      id: 'refreshment_corner',
-      name: 'リフレッシュメントコーナー',
-      nameEn: 'Refreshment Corner',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.WORLD_BAZAAR,
-      tags: ['hot dogs', 'american', 'quick service'],
-    },
-  ],
-
-  [LandArea.ADVENTURELAND]: [
-    {
-      id: 'blue_bayou_restaurant',
-      name: 'ブルーバイユー・レストラン',
-      nameEn: 'Blue Bayou Restaurant',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.ADVENTURELAND,
-      tags: ['creole', 'table service', 'atmosphere'],
-      isPopular: true,
-    },
-    {
-      id: 'china_voyage',
-      name: 'チャイナボイジャー',
-      nameEn: 'China Voyage',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.ADVENTURELAND,
-      tags: ['chinese', 'dim sum', 'quick service'],
-    },
-    {
-      id: 'parkside_diner',
-      name: 'パークサイドダイナー',
-      nameEn: 'Parkside Diner',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.ADVENTURELAND,
-      tags: ['american', 'diner', 'quick service'],
-    },
-    {
-      id: 'polynesian_terrace',
-      name: 'ポリネシアンテラス・レストラン',
-      nameEn: 'Polynesian Terrace Restaurant',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.ADVENTURELAND,
-      tags: ['polynesian', 'show dining', 'table service'],
-      isPopular: true,
-    },
-  ],
-
-  [LandArea.WESTERNLAND]: [
-    {
-      id: 'hungry_bear_restaurant',
-      name: 'ハングリーベア・レストラン',
-      nameEn: 'Hungry Bear Restaurant',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.WESTERNLAND,
-      tags: ['curry', 'rice', 'quick service'],
-    },
-    {
-      id: 'plaza_pavilion_restaurant',
-      name: 'プラザパビリオン・レストラン',
-      nameEn: 'Plaza Pavilion Restaurant',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.WESTERNLAND,
-      tags: ['pasta', 'pizza', 'quick service'],
-    },
-    {
-      id: 'pecos_bill_cafe',
-      name: 'ペコスビル・カフェ',
-      nameEn: 'Pecos Bill Cafe',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.WESTERNLAND,
-      tags: ['tex-mex', 'american', 'quick service'],
-    },
-  ],
-
-  [LandArea.CRITTER_COUNTRY]: [
-    {
-      id: 'grandma_saras_kitchen',
-      name: 'グランマ・サラのキッチン',
-      nameEn: 'Grandma Sara\'s Kitchen',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.CRITTER_COUNTRY,
-      tags: ['home cooking', 'family', 'quick service'],
-    },
-    {
-      id: 'rackettys_raccoon_saloon',
-      name: 'ラケッティのラクーンサルーン',
-      nameEn: 'Racketty\'s Raccoon Saloon',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.CRITTER_COUNTRY,
-      tags: ['american', 'snacks', 'quick service'],
-    },
-  ],
-
-  [LandArea.FANTASYLAND]: [
-    {
-      id: 'queen_of_hearts_banquet_hall',
-      name: 'クイーン・オブ・ハートのバンケットホール',
-      nameEn: 'Queen of Hearts Banquet Hall',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['alice', 'whimsical', 'quick service'],
-      isPopular: true,
-    },
-    {
-      id: 'red_rose_tavern',
-      name: 'レッドローズタベルネ',
-      nameEn: 'Red Rose Taverne',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['beauty and the beast', 'french', 'quick service'],
-      isNew: true,
-    },
-    {
-      id: 'captain_hooks_galley',
-      name: 'キャプテンフック・ギャレー',
-      nameEn: 'Captain Hook\'s Galley',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['pizza', 'peter pan', 'quick service'],
-    },
-    {
-      id: 'pinocchio_village_haus',
-      name: 'ピノキオビレッジキッチン',
-      nameEn: 'Village Haus Restaurant',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['pizza', 'pinocchio', 'quick service'],
-    },
-  ],
-
-  [LandArea.TOONTOWN]: [
-    {
-      id: 'huey_dewey_louie_good_time_cafe',
-      name: 'ヒューイ・デューイ・ルーイのグッドタイム・カフェ',
-      nameEn: 'Huey, Dewey and Louie\'s Good Time Cafe',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.TOONTOWN,
-      tags: ['pizza', 'donald', 'quick service'],
-    },
-    {
-      id: 'toontown_five_and_dime',
-      name: 'トゥーンタウン・ファイブ・アンド・ダイム',
-      nameEn: 'Toontown Five & Dime',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.TOONTOWN,
-      tags: ['snacks', 'candy', 'quick service'],
-    },
-    {
-      id: 'pop_a_lot_popcorn',
-      name: 'ポップ・ア・ロット・ポップコーン',
-      nameEn: 'Pop-a-Lot Popcorn',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.TOONTOWN,
-      tags: ['popcorn', 'snacks', 'cart'],
-    },
-  ],
-
-  [LandArea.TOMORROWLAND]: [
-    {
-      id: 'tomorrowland_terrace',
-      name: 'トゥモローランド・テラス',
-      nameEn: 'Tomorrowland Terrace',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.TOMORROWLAND,
-      tags: ['hamburgers', 'american', 'quick service'],
-    },
-    {
-      id: 'plaza_restaurant',
-      name: 'プラザ・レストラン',
-      nameEn: 'Plaza Restaurant',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.TOMORROWLAND,
-      tags: ['western', 'table service', 'character dining'],
-      isPopular: true,
-    },
-    {
-      id: 'soft_landing',
-      name: 'ソフトランディング',
-      nameEn: 'Soft Landing',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.TOMORROWLAND,
-      tags: ['gyoza', 'chinese', 'quick service'],
-    },
-    {
-      id: 'space_place_foodport',
-      name: 'スペース・プレース・フードポート',
-      nameEn: 'Space Place FoodPort',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.LAND,
-      area: LandArea.TOMORROWLAND,
-      tags: ['ramen', 'noodles', 'quick service'],
-    },
-  ],
-
-  // Tokyo DisneySea Restaurants
-  [SeaArea.MEDITERRANEAN_HARBOR]: [
-    {
-      id: 'ristorante_di_canaletto',
-      name: 'リストランテ・ディ・カナレット',
-      nameEn: 'Ristorante di Canaletto',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.MEDITERRANEAN_HARBOR,
-      tags: ['italian', 'table service', 'harbor view'],
-      isPopular: true,
-    },
-    {
-      id: 'oceano',
-      name: 'オチェーアノ',
-      nameEn: 'Oceano',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.MEDITERRANEAN_HARBOR,
-      tags: ['mediterranean', 'table service', 'character dining'],
-      isPopular: true,
-    },
-    {
-      id: 'silk_road_garden',
-      name: 'シルクロードガーデン',
-      nameEn: 'Silk Road Garden',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.MEDITERRANEAN_HARBOR,
-      tags: ['chinese', 'table service', 'character dining'],
-    },
-    {
-      id: 'zambini_brothers_ristorante',
-      name: 'ザンビーニ・ブラザーズ・リストランテ',
-      nameEn: 'Zambini Brothers\' Ristorante',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.MEDITERRANEAN_HARBOR,
-      tags: ['pizza', 'italian', 'quick service'],
-    },
-    {
-      id: 'cafe_portofino',
-      name: 'カフェ・ポルトフィーノ',
-      nameEn: 'Cafe Portofino',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.MEDITERRANEAN_HARBOR,
-      tags: ['coffee', 'dessert', 'quick service'],
-    },
-  ],
-
-  [SeaArea.AMERICAN_WATERFRONT]: [
-    {
-      id: 'ss_columbia_dining_room',
-      name: 'S.S.コロンビア・ダイニングルーム',
-      nameEn: 'S.S. Columbia Dining Room',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.AMERICAN_WATERFRONT,
-      tags: ['american', 'table service', 'ship'],
-      isPopular: true,
-    },
-    {
-      id: 'teddy_roosevelts_lounge',
-      name: 'テディ・ルーズヴェルト・ラウンジ',
-      nameEn: 'Teddy Roosevelt Lounge',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.AMERICAN_WATERFRONT,
-      tags: ['lounge', 'drinks', 'table service'],
-    },
-    {
-      id: 'restaurant_sakura',
-      name: 'レストラン櫻',
-      nameEn: 'Restaurant Sakura',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.AMERICAN_WATERFRONT,
-      tags: ['japanese', 'table service', 'ship'],
-    },
-    {
-      id: 'cape_cod_cook_off',
-      name: 'ケープコッド・クックオフ',
-      nameEn: 'Cape Cod Cook-Off',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.AMERICAN_WATERFRONT,
-      tags: ['hamburgers', 'american', 'quick service'],
-    },
-    {
-      id: 'dockside_diner',
-      name: 'ドックサイドダイナー',
-      nameEn: 'Dockside Diner',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.AMERICAN_WATERFRONT,
-      tags: ['american', 'diner', 'quick service'],
-    },
-    {
-      id: 'sailing_day_buffet',
-      name: 'セイリングデイ・ブッフェ',
-      nameEn: 'Sailing Day Buffet',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.AMERICAN_WATERFRONT,
-      tags: ['buffet', 'american', 'table service'],
-    },
-  ],
-
-  [SeaArea.PORT_DISCOVERY]: [
-    {
-      id: 'horizon_bay_restaurant',
-      name: 'ホライズンベイ・レストラン',
-      nameEn: 'Horizon Bay Restaurant',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.PORT_DISCOVERY,
-      tags: ['international', 'buffet', 'table service'],
-    },
-    {
-      id: 'volt_in',
-      name: 'ヴォルツィーノ',
-      nameEn: 'Volt In',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.PORT_DISCOVERY,
-      tags: ['pizza', 'pasta', 'quick service'],
-    },
-    {
-      id: 'lighthouse_diner',
-      name: 'ライトハウスダイナー',
-      nameEn: 'Lighthouse Diner',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.PORT_DISCOVERY,
-      tags: ['hamburgers', 'american', 'quick service'],
-    },
-  ],
-
-  [SeaArea.LOST_RIVER_DELTA]: [
-    {
-      id: 'yucatan_base_camp_grill',
-      name: 'ユカタン・ベースキャンプ・グリル',
-      nameEn: 'Yucatan Base Camp Grill',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.LOST_RIVER_DELTA,
-      tags: ['mexican', 'grill', 'quick service'],
-    },
-    {
-      id: 'miguel_s_el_dorado_cantina',
-      name: 'ミゲルズ・エルドラド・キャンティーナ',
-      nameEn: 'Miguel\'s El Dorado Cantina',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.LOST_RIVER_DELTA,
-      tags: ['mexican', 'table service', 'cantina'],
-    },
-    {
-      id: 'lost_river_cookhouse',
-      name: 'ロストリバークックハウス',
-      nameEn: 'Lost River Cookhouse',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.LOST_RIVER_DELTA,
-      tags: ['barbecue', 'american', 'quick service'],
-    },
-  ],
-
-  [SeaArea.ARABIAN_COAST]: [
-    {
-      id: 'jasmine_palace_restaurant',
-      name: 'ジャスミンパレス・レストラン',
-      nameEn: 'Jasmine Palace Restaurant',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.ARABIAN_COAST,
-      tags: ['middle eastern', 'table service', 'aladdin'],
-    },
-    {
-      id: 'casbah_food_court',
-      name: 'カスバ・フードコート',
-      nameEn: 'Casbah Food Court',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.ARABIAN_COAST,
-      tags: ['curry', 'middle eastern', 'quick service'],
-    },
-    {
-      id: 'sultan_s_oasis',
-      name: 'スルタンズ・オアシス',
-      nameEn: 'Sultan\'s Oasis',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.ARABIAN_COAST,
-      tags: ['snacks', 'middle eastern', 'quick service'],
-    },
-  ],
-
-  [SeaArea.MERMAID_LAGOON]: [
-    {
-      id: 'sebastians_calypso_kitchen_restaurant',
-      name: 'セバスチャンのカリプソキッチン',
-      nameEn: 'Sebastian\'s Calypso Kitchen',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.MERMAID_LAGOON,
-      tags: ['pizza', 'little mermaid', 'quick service'],
-    },
-  ],
-
-  [SeaArea.MYSTERIOUS_ISLAND]: [
-    {
-      id: 'nautilus_galley',
-      name: 'ノーチラスギャレー',
-      nameEn: 'Nautilus Galley',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.MYSTERIOUS_ISLAND,
-      tags: ['chinese', 'noodles', 'quick service'],
-    },
-    {
-      id: 'vulcania_restaurant',
-      name: 'ヴォルケイニア・レストラン',
-      nameEn: 'Vulcania Restaurant',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.MYSTERIOUS_ISLAND,
-      tags: ['international', 'table service', 'character dining'],
-    },
-  ],
-
-  [SeaArea.FANTASY_SPRINGS]: [
-    {
-      id: 'grand_menu',
-      name: 'グランドメニュー',
-      nameEn: 'Grand Menu',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.FANTASY_SPRINGS,
-      tags: ['frozen', 'table service', 'fine dining'],
-      isNew: true,
-      isPopular: true,
-    },
-    {
-      id: 'rapunzel_forest_kitchen',
-      name: 'ラプンツェルの森のキッチン',
-      nameEn: 'Rapunzel\'s Forest Kitchen',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.FANTASY_SPRINGS,
-      tags: ['tangled', 'table service', 'forest'],
-      isNew: true,
-    },
-    {
-      id: 'lost_boy_hideout',
-      name: 'ロストボーイの隠れ家',
-      nameEn: 'Lost Boy Hideout',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.FANTASY_SPRINGS,
-      tags: ['peter pan', 'quick service', 'hideout'],
-      isNew: true,
-    },
-    {
-      id: 'lookout_cookout',
-      name: 'ルックアウト・クックアウト',
-      nameEn: 'Lookout Cookout',
-      category: ActionCategory.RESTAURANT,
-      parkType: ParkType.SEA,
-      area: SeaArea.FANTASY_SPRINGS,
-      tags: ['peter pan', 'quick service', 'outdoor'],
-      isNew: true,
-    },
-  ],
+  land: {
+    'ワールドバザール': [
+      'アイスクリームコーン',
+      'イーストサイド・カフェ',
+      'グレートアメリカン・ワッフルカンパニー',
+      'スウィートハート・カフェ',
+      'センターストリート・コーヒーハウス',
+      'リフレッシュメントコーナー',
+      'れすとらん北齋',
+      'クラブ33'
+    ],
+    'アドベンチャーランド': [
+      'カフェ・オーリンズ',
+      'クリスタルパレス・レストラン',
+      'ザ・ガゼーボ',
+      'スキッパーズ・ギャレー',
+      'スクウィーザーズ・トロピカル・ジュースバー',
+      'チャイナボイジャー',
+      'パークサイドワゴン',
+      'フレッシュフルーツオアシス',
+      'ブルーバイユー・レストラン',
+      'ボイラールーム・バイツ',
+      'ポリネシアンテラス・レストラン'
+    ],
+    'ウエスタンランド': [
+      'カウボーイ・クックハウス',
+      'キャンプ・ウッドチャック・キッチン',
+      'ザ・ダイヤモンドホースシュー',
+      'ハングリーベア・レストラン',
+      'プラザパビリオン・レストラン',
+      'ペコスビル・カフェ'
+    ],
+    'クリッターカントリー': [
+      'グランマ・サラのキッチン',
+      'ラケッティのラクーンサルーン'
+    ],
+    'ファンタジーランド': [
+      'キャプテンフックス・ギャレー',
+      'クイーン・オブ・ハートのバンケットホール',
+      'クレオズ',
+      'トルバドールタバン',
+      'ビレッジペイストリー',
+      'マジカルマーケット',
+      'ラ・タベルヌ・ド・ガストン',
+      'ル・フウズ',
+      'ル・プティポッパー'
+    ],
+    'トゥーンタウン': [
+      'ディンギードリンク',
+      'トゥーントーン・トリート',
+      'トゥーンポップ',
+      'ヒューイ・デューイ・ルーイのグッドタイム・カフェ',
+      'ポップ・ア・ロット・ポップコーン',
+      'ミッキーのトレーラー'
+    ],
+    'トゥモローランド': [
+      'ソフトランディング',
+      'トゥモローランド・テラス',
+      'パン・ギャラクティック・ピザ・ポート',
+      'ビッグポップ',
+      'プラズマ・レイズ・ダイナー',
+      'ポッピングポッド'
+    ]
+  },
+  sea: {
+    'メディテレーニアンハーバー': [
+      'カフェ・ポルトフィーノ',
+      'ゴンドリエ・スナック',
+      'ザンビーニ・ブラザーズ・リストランテ',
+      'マゼランズ',
+      'マンマ・ビスコッティーズ・ベーカリー'
+    ],
+    'アメリカンウォーターフロント': [
+      'S.S.コロンビア・ダイニングルーム',
+      'ケープコッド・クックオフ',
+      'ケープコッド・コンフェクション',
+      'ドックサイドダイナー',
+      'テディ・ルーズヴェルト・ラウンジ',
+      'ニューヨーク・デリ',
+      'レストラン櫻',
+      'レストラン櫻 テラス席',
+      'ハドソンリバー・ハーベスト',
+      'バーナクル・ビルズ',
+      'リバティ・ランディング・ダイナー'
+    ],
+    'ポートディスカバリー': [
+      'シーサイドスナック',
+      'ブリーズウェイ・バイツ',
+      'ベイサイド・テイクアウト',
+      'ホライズンベイ・レストラン'
+    ],
+    'ロストリバーデルタ': [
+      'エクスペディション・イート',
+      'トロピック・アルズ',
+      'ミゲルズ・エルドラド・キャンティーナ',
+      'ユカタン・ベースキャンプ・グリル'
+    ],
+    'ファンタジースプリングス': [
+      'アレンデール・ロイヤルバンケット',
+      'オーケンのオーケーフード',
+      'スナグリーダックリング',
+      'ルックアウト・クックアウト'
+    ],
+    'アラビアンコースト': [
+      'オープンセサミ',
+      'カスバ・フードコート',
+      'サルタンズ・オアシス'
+    ],
+    'マーメイドラグーン': [
+      'セバスチャンのカリプソキッチン'
+    ],
+    'ミステリアスアイランド': [
+      'ヴォルケイニア・レストラン',
+      'ノーチラスギャレー',
+      'リフレッシュメント・ステーション'
+    ]
+  }
 };
 
-// Shops preset data
 export const PRESET_SHOPS_BY_AREA = {
-  // Tokyo Disneyland Shops
-  [LandArea.WORLD_BAZAAR]: [
-    {
-      id: 'grand_emporium',
-      name: 'グランドエンポーリアム',
-      nameEn: 'Grand Emporium',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.WORLD_BAZAAR,
-      tags: ['souvenirs', 'clothing', 'largest'],
-      isPopular: true,
-    },
-    {
-      id: 'disney_clothiers',
-      name: 'ディズニークロージア',
-      nameEn: 'Disney Clothiers',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.WORLD_BAZAAR,
-      tags: ['clothing', 'fashion', 'accessories'],
-    },
-    {
-      id: 'main_street_confectionery',
-      name: 'メインストリート・コンフェクショナリー',
-      nameEn: 'Main Street Confectionery',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.WORLD_BAZAAR,
-      tags: ['candy', 'sweets', 'confectionery'],
-    },
-    {
-      id: 'town_center_fashions',
-      name: 'タウンセンターファッション',
-      nameEn: 'Town Center Fashions',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.WORLD_BAZAAR,
-      tags: ['clothing', 'fashion', 'accessories'],
-    },
-    {
-      id: 'harmony_fair',
-      name: 'ハーモニーフェア',
-      nameEn: 'Harmony Fair',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.WORLD_BAZAAR,
-      tags: ['stationery', 'home goods', 'gifts'],
-    },
-    {
-      id: 'house_of_greens',
-      name: 'ハウス・オブ・グリーンズ',
-      nameEn: 'House of Greens',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.WORLD_BAZAAR,
-      tags: ['home goods', 'kitchen', 'gardening'],
-    },
-  ],
-
-  [LandArea.ADVENTURELAND]: [
-    {
-      id: 'adventureland_bazaar',
-      name: 'アドベンチャーランド・バザール',
-      nameEn: 'Adventureland Bazaar',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.ADVENTURELAND,
-      tags: ['souvenirs', 'adventure', 'tropical'],
-    },
-    {
-      id: 'pirates_treasure',
-      name: 'パイレーツ・トレジャー',
-      nameEn: 'Pirates Treasure',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.ADVENTURELAND,
-      tags: ['pirates', 'treasure', 'accessories'],
-    },
-    {
-      id: 'tiki_tropical_store',
-      name: 'チキ・トロピカル・ストア',
-      nameEn: 'Tiki Tropical Store',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.ADVENTURELAND,
-      tags: ['tropical', 'tiki', 'souvenirs'],
-    },
-  ],
-
-  [LandArea.WESTERNLAND]: [
-    {
-      id: 'country_bear_bandwagon',
-      name: 'カントリーベア・バンドワゴン',
-      nameEn: 'Country Bear Bandwagon',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.WESTERNLAND,
-      tags: ['country bears', 'music', 'western'],
-    },
-    {
-      id: 'prairie_outpost',
-      name: 'プレーリー・アウトポスト',
-      nameEn: 'Prairie Outpost',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.WESTERNLAND,
-      tags: ['western', 'frontier', 'souvenirs'],
-    },
-    {
-      id: 'general_store',
-      name: 'ジェネラルストア',
-      nameEn: 'General Store',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.WESTERNLAND,
-      tags: ['general', 'western', 'supplies'],
-    },
-  ],
-
-  [LandArea.CRITTER_COUNTRY]: [
-    {
-      id: 'pooh_corner',
-      name: 'プーコーナー',
-      nameEn: 'Pooh Corner',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.CRITTER_COUNTRY,
-      tags: ['winnie the pooh', 'honey', 'plush'],
-      isPopular: true,
-    },
-    {
-      id: 'critter_country_goods',
-      name: 'クリッターカントリー・グッズ',
-      nameEn: 'Critter Country Goods',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.CRITTER_COUNTRY,
-      tags: ['critters', 'nature', 'souvenirs'],
-    },
-  ],
-
-  [LandArea.FANTASYLAND]: [
-    {
-      id: 'fantasy_gifts',
-      name: 'ファンタジーギフト',
-      nameEn: 'Fantasy Gifts',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['fantasy', 'fairy tale', 'souvenirs'],
-    },
-    {
-      id: 'geppetto_holiday_workshop',
-      name: 'ゼペットのホリデー・ワークショップ',
-      nameEn: 'Geppetto\'s Holiday Workshop',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['pinocchio', 'toys', 'workshop'],
-    },
-    {
-      id: 'mad_hatter',
-      name: 'マッドハッター',
-      nameEn: 'Mad Hatter',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['alice', 'hats', 'accessories'],
-    },
-    {
-      id: 'king_tritons_treasure',
-      name: 'キング・トリトンの宝物庫',
-      nameEn: 'King Triton\'s Treasure',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['little mermaid', 'treasure', 'under the sea'],
-    },
-    {
-      id: 'village_shoppes',
-      name: 'ビレッジショップス',
-      nameEn: 'Village Shoppes',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['beauty and the beast', 'village', 'books'],
-      isNew: true,
-    },
-    {
-      id: 'la_petite_perfumerie',
-      name: 'ラ・プティット・パフュームリー',
-      nameEn: 'La Petite Parfumerie',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['beauty and the beast', 'perfume', 'cosmetics'],
-      isNew: true,
-    },
-  ],
-
-  [LandArea.TOONTOWN]: [
-    {
-      id: 'gag_factory',
-      name: 'ガグファクトリー',
-      nameEn: 'Gag Factory',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.TOONTOWN,
-      tags: ['goofy', 'gags', 'toys'],
-    },
-    {
-      id: 'toontown_delivery_company',
-      name: 'トゥーンタウン・デリバリーカンパニー',
-      nameEn: 'Toontown Delivery Company',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.TOONTOWN,
-      tags: ['delivery', 'toontown', 'souvenirs'],
-    },
-  ],
-
-  [LandArea.TOMORROWLAND]: [
-    {
-      id: 'cosmic_encounters',
-      name: 'コズミック・エンカウンター',
-      nameEn: 'Cosmic Encounters',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.TOMORROWLAND,
-      tags: ['space', 'future', 'toys'],
-    },
-    {
-      id: 'planet_m',
-      name: 'プラネットM',
-      nameEn: 'Planet M',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.TOMORROWLAND,
-      tags: ['monsters inc', 'space', 'souvenirs'],
-    },
-    {
-      id: 'monsters_inc_company_store',
-      name: 'モンスターズ・インク・カンパニーストア',
-      nameEn: 'Monsters, Inc. Company Store',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.LAND,
-      area: LandArea.TOMORROWLAND,
-      tags: ['monsters inc', 'company', 'merchandise'],
-    },
-  ],
-
-  // Tokyo DisneySea Shops
-  [SeaArea.MEDITERRANEAN_HARBOR]: [
-    {
-      id: 'emporio',
-      name: 'エンポーリオ',
-      nameEn: 'Emporio',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.MEDITERRANEAN_HARBOR,
-      tags: ['souvenirs', 'largest', 'mediterranean'],
-      isPopular: true,
-    },
-    {
-      id: 'la_bottega_italiana',
-      name: 'ラ・ボッテガ・イタリアーナ',
-      nameEn: 'La Bottega Italiana',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.MEDITERRANEAN_HARBOR,
-      tags: ['italian', 'food', 'gourmet'],
-    },
-    {
-      id: 'valentinas_sweets',
-      name: 'ヴァレンティーナズ・スウィート',
-      nameEn: 'Valentina\'s Sweets',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.MEDITERRANEAN_HARBOR,
-      tags: ['candy', 'sweets', 'confectionery'],
-    },
-    {
-      id: 'murano_shop',
-      name: 'ムラーノ・ショップ',
-      nameEn: 'Murano Shop',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.MEDITERRANEAN_HARBOR,
-      tags: ['glass', 'venetian', 'crafts'],
-    },
-  ],
-
-  [SeaArea.AMERICAN_WATERFRONT]: [
-    {
-      id: 'tower_of_terror_memorabilia',
-      name: 'タワー・オブ・テラー・メモラビリア',
-      nameEn: 'Tower of Terror Memorabilia',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.AMERICAN_WATERFRONT,
-      tags: ['tower of terror', 'memorabilia', 'collectibles'],
-    },
-    {
-      id: 'aunt_pegs_village_store',
-      name: 'アーント・ペグズ・ビレッジストア',
-      nameEn: 'Aunt Peg\'s Village Store',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.AMERICAN_WATERFRONT,
-      tags: ['village', 'general store', 'american'],
-    },
-    {
-      id: 'mcduffy_department_store',
-      name: 'マクダフィー・デパートメントストア',
-      nameEn: 'McDuffy\'s Department Store',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.AMERICAN_WATERFRONT,
-      tags: ['duffy', 'plush', 'department store'],
-      isPopular: true,
-    },
-    {
-      id: 'toys_to_the_second_power',
-      name: 'トイズ・トゥ・ザ・セカンド・パワー',
-      nameEn: 'Toys to the Second Power',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.AMERICAN_WATERFRONT,
-      tags: ['toy story', 'toys', 'games'],
-    },
-  ],
-
-  [SeaArea.PORT_DISCOVERY]: [
-    {
-      id: 'discoveries_gifts',
-      name: 'ディスカバリーギフト',
-      nameEn: 'Discovery Gifts',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.PORT_DISCOVERY,
-      tags: ['discovery', 'science', 'future'],
-    },
-    {
-      id: 'nemo_friends_seahorse_gifts',
-      name: 'ニモ＆フレンズ・シーライダー ギフト',
-      nameEn: 'Nemo & Friends SeaRider Gifts',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.PORT_DISCOVERY,
-      tags: ['finding nemo', 'seahorse', 'underwater'],
-    },
-  ],
-
-  [SeaArea.LOST_RIVER_DELTA]: [
-    {
-      id: 'indiana_jones_adventure_outpost',
-      name: 'インディ・ジョーンズ・アドベンチャー・アウトポスト',
-      nameEn: 'Indiana Jones Adventure Outpost',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.LOST_RIVER_DELTA,
-      tags: ['indiana jones', 'adventure', 'expedition'],
-    },
-    {
-      id: 'panchitos_gifts_souvenirs',
-      name: 'パンチートのおみやげ',
-      nameEn: 'Panchito\'s Gifts & Souvenirs',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.LOST_RIVER_DELTA,
-      tags: ['three caballeros', 'mexican', 'souvenirs'],
-    },
-  ],
-
-  [SeaArea.ARABIAN_COAST]: [
-    {
-      id: 'abu_elephant_catchers',
-      name: 'アブーズ・バザール',
-      nameEn: 'Abu\'s Bazaar',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.ARABIAN_COAST,
-      tags: ['aladdin', 'abu', 'bazaar'],
-    },
-    {
-      id: 'agrabah_marketplace',
-      name: 'アグラバーマーケットプレイス',
-      nameEn: 'Agrabah Marketplace',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.ARABIAN_COAST,
-      tags: ['aladdin', 'agrabah', 'marketplace'],
-    },
-  ],
-
-  [SeaArea.MERMAID_LAGOON]: [
-    {
-      id: 'ariels_treasures',
-      name: 'アリエルのトレジャー',
-      nameEn: 'Ariel\'s Treasures',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.MERMAID_LAGOON,
-      tags: ['little mermaid', 'ariel', 'treasures'],
-    },
-    {
-      id: 'gadgets_gizmos',
-      name: 'ガジェッツ・ギズモス',
-      nameEn: 'Gadgets & Gizmos',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.MERMAID_LAGOON,
-      tags: ['little mermaid', 'gadgets', 'underwater'],
-    },
-  ],
-
-  [SeaArea.MYSTERIOUS_ISLAND]: [
-    {
-      id: 'nautilus_gifts',
-      name: 'ノーチラス・ギフト',
-      nameEn: 'Nautilus Gifts',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.MYSTERIOUS_ISLAND,
-      tags: ['nautilus', 'submarine', 'mysterious'],
-    },
-    {
-      id: 'vulcania_treasures',
-      name: 'ヴォルケイニア・トレジャー',
-      nameEn: 'Vulcania Treasures',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.MYSTERIOUS_ISLAND,
-      tags: ['volcano', 'treasures', 'mysterious'],
-    },
-  ],
-
-  [SeaArea.FANTASY_SPRINGS]: [
-    {
-      id: 'frozen_sledding_gifts',
-      name: 'フローズンキングダム・ギフト',
-      nameEn: 'Frozen Kingdom Gifts',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.FANTASY_SPRINGS,
-      tags: ['frozen', 'elsa', 'anna'],
-      isNew: true,
-      isPopular: true,
-    },
-    {
-      id: 'rapunzel_tower_gifts',
-      name: 'ラプンツェルの塔のギフト',
-      nameEn: 'Rapunzel\'s Tower Gifts',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.FANTASY_SPRINGS,
-      tags: ['tangled', 'rapunzel', 'tower'],
-      isNew: true,
-    },
-    {
-      id: 'peter_pan_gifts',
-      name: 'ピーターパンのギフト',
-      nameEn: 'Peter Pan Gifts',
-      category: ActionCategory.SHOPPING,
-      parkType: ParkType.SEA,
-      area: SeaArea.FANTASY_SPRINGS,
-      tags: ['peter pan', 'neverland', 'pixie dust'],
-      isNew: true,
-    },
-  ],
+  land: {
+    'ワールドバザール': [
+      'カメラセンター',
+      'グランドエンポーリアム',
+      'シルエットスタジオ',
+      'タウンセンターファッション',
+      'ディズニー＆カンパニー',
+      'トイ・ステーション',
+      'ハウス・オブ・グリーティング',
+      'ハリントンズ・ジュエリー＆ウォッチ',
+      'ビビディ・バビディ・ブティック',
+      'ペイストリーパレス',
+      'ホームストア',
+      'マジックショップ',
+      'ワールドバザール・コンフェクショナリー'
+    ],
+    'アドベンチャーランド': [
+      'アドベンチャーランド・バザール',
+      'クリスタルアーツ',
+      'ゴールデンガリオン',
+      'ジャングルカーニバル',
+      'パイレーツ・トレジャー',
+      'パーティグラ・ギフト',
+      'ラ・プティート・パフュームリー'
+    ],
+    'ウエスタンランド': [
+      'ウエスタンウエア',
+      'ウエスタンランド写真館',
+      'カントリーベア・バンドワゴン',
+      'ゼネラルストア',
+      'トレーディングポスト',
+      'ハッピーキャンパーサプライ',
+      'フロンティア・ウッドクラフト'
+    ],
+    'クリッターカントリー': [
+      'スプラッシュダウン・フォト',
+      'フート＆ハラー・ハイドアウト'
+    ],
+    'ファンタジーランド': [
+      'ガラスの靴',
+      'キングダム・トレジャー',
+      'ストロンボリズ・ワゴン',
+      'ハーモニーフェア',
+      'ビレッジショップス',
+      'プーさんコーナー',
+      'ブレイブリトルテイラー・ショップ',
+      'プレジャーアイランド・キャンディーズ'
+    ],
+    'トゥーンタウン': [
+      'ギャグファクトリー/ファイブ・アンド・ダイム',
+      'トゥーンタウン・デリバリーカンパニー'
+    ],
+    'トゥモローランド': [
+      'コズミック・エンカウンター',
+      'スターゲイザーサプライ',
+      'トレジャーコメット',
+      'モンスターズ・インク・カンパニーストア'
+    ]
+  },
+  sea: {
+    'メディテレーニアンハーバー': [
+      'イル・ポスティーノ・ステーショナリー',
+      'ヴァレンティーナズ・スウィート',
+      'ヴィラ・ドナルド・ホームショップ',
+      'ヴェネツィアン・カーニバル・マーケット',
+      'エンポーリオ',
+      'ガッレリーア・ディズニー',
+      'スプレンディード',
+      'ピッコロメルカート',
+      'フィガロズ・クロージアー',
+      'フォトグラフィカ',
+      'ベッラ・ミンニ・コレクション',
+      'マーチャント・オブ・ヴェニス・コンフェクション',
+      'ミラマーレ',
+      'リメンブランツェ'
+    ],
+    'アメリカンウォーターフロント': [
+      'アーント・ペグズ・ヴィレッジストア',
+      'スチームボート・ミッキーズ',
+      'スリンキー・ドッグのギフトトロリー',
+      'タワー・オブ・テラー・メモラビリア',
+      'タワー・オブ・テラー・メモラビリア（カプセルトイ）',
+      'ニュージーズ・ノヴェルティ',
+      'マクダックス・デパートメントストア'
+    ],
+    'ポートディスカバリー': [
+      'スカイウォッチャー・スーヴェニア',
+      'ディスカバリーギフト'
+    ],
+    'ロストリバーデルタ': [
+      'エクスペディション・フォトアーカイヴ',
+      'ペドラーズ・アウトポスト',
+      'ルックアウト・トレーダー',
+      'ロストリバーアウトフィッター'
+    ],
+    'ファンタジースプリングス': [
+      'ファンタジースプリングス・ギフト',
+      'スプリングス・トレジャー'
+    ],
+    'アラビアンコースト': [
+      'アグラバーマーケットプレイス',
+      'アブーズ・バザール'
+    ],
+    'マーメイドラグーン': [
+      'キス・デ・ガール・ファッション',
+      'グロットフォト＆ギフト',
+      'シータートル・スーヴェニア',
+      'スリーピーホエール・ショップ',
+      'マーメイドトレジャー',
+      'マーメイドメモリー'
+    ],
+    'ミステリアスアイランド': [
+      'ノーチラスギフト'
+    ]
+  }
 };
 
-// Greetings preset data
-export const PRESET_GREETINGS_BY_AREA = {
-  // Tokyo Disneyland Greetings
-  [LandArea.WORLD_BAZAAR]: [
-    {
-      id: 'mickey_minnie_world_bazaar',
-      name: 'ミッキーマウス・ミニーマウス（ワールドバザール）',
-      nameEn: 'Mickey Mouse & Minnie Mouse (World Bazaar)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.LAND,
-      area: LandArea.WORLD_BAZAAR,
-      tags: ['mickey', 'minnie', 'classic', 'main characters'],
-      isPopular: true,
-    },
-  ],
-
-  [LandArea.ADVENTURELAND]: [
-    {
-      id: 'mickey_minnie_adventureland',
-      name: 'ミッキーマウス・ミニーマウス（アドベンチャーランド）',
-      nameEn: 'Mickey Mouse & Minnie Mouse (Adventureland)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.LAND,
-      area: LandArea.ADVENTURELAND,
-      tags: ['mickey', 'minnie', 'adventure', 'explorer'],
-    },
-    {
-      id: 'chip_dale_adventureland',
-      name: 'チップ・デール（アドベンチャーランド）',
-      nameEn: 'Chip & Dale (Adventureland)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.LAND,
-      area: LandArea.ADVENTURELAND,
-      tags: ['chip', 'dale', 'chipmunks'],
-    },
-  ],
-
-  [LandArea.WESTERNLAND]: [
-    {
-      id: 'woody_jessie_westernland',
-      name: 'ウッディ・ジェシー（ウエスタンランド）',
-      nameEn: 'Woody & Jessie (Westernland)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.LAND,
-      area: LandArea.WESTERNLAND,
-      tags: ['toy story', 'woody', 'jessie', 'western'],
-      isPopular: true,
-    },
-    {
-      id: 'country_bears_westernland',
-      name: 'カントリーベア（ウエスタンランド）',
-      nameEn: 'Country Bears (Westernland)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.LAND,
-      area: LandArea.WESTERNLAND,
-      tags: ['country bears', 'bears', 'music'],
-    },
-  ],
-
-  [LandArea.CRITTER_COUNTRY]: [
-    {
-      id: 'pooh_friends_critter_country',
-      name: 'プーさんと仲間たち（クリッターカントリー）',
-      nameEn: 'Pooh & Friends (Critter Country)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.LAND,
-      area: LandArea.CRITTER_COUNTRY,
-      tags: ['winnie the pooh', 'tigger', 'piglet', 'eeyore'],
-      isPopular: true,
-    },
-    {
-      id: 'rabbit_critter_country',
-      name: 'ラビット（クリッターカントリー）',
-      nameEn: 'Rabbit (Critter Country)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.LAND,
-      area: LandArea.CRITTER_COUNTRY,
-      tags: ['winnie the pooh', 'rabbit'],
-    },
-  ],
-
-  [LandArea.FANTASYLAND]: [
-    {
-      id: 'princesses_fantasyland',
-      name: 'ディズニープリンセス（ファンタジーランド）',
-      nameEn: 'Disney Princesses (Fantasyland)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['princesses', 'belle', 'cinderella', 'snow white'],
-      isPopular: true,
-    },
-    {
-      id: 'alice_mad_hatter_fantasyland',
-      name: 'アリス・マッドハッター（ファンタジーランド）',
-      nameEn: 'Alice & Mad Hatter (Fantasyland)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['alice', 'mad hatter', 'wonderland'],
-    },
-    {
-      id: 'peter_pan_wendy_fantasyland',
-      name: 'ピーターパン・ウェンディ（ファンタジーランド）',
-      nameEn: 'Peter Pan & Wendy (Fantasyland)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['peter pan', 'wendy', 'neverland'],
-    },
-    {
-      id: 'beast_fantasyland',
-      name: 'ビースト（ファンタジーランド）',
-      nameEn: 'Beast (Fantasyland)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.LAND,
-      area: LandArea.FANTASYLAND,
-      tags: ['beauty and the beast', 'beast'],
-      isNew: true,
-    },
-  ],
-
-  [LandArea.TOONTOWN]: [
-    {
-      id: 'mickey_house_toontown',
-      name: 'ミッキーマウス（ミッキーの家）',
-      nameEn: 'Mickey Mouse (Mickey\'s House)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.LAND,
-      area: LandArea.TOONTOWN,
-      tags: ['mickey', 'house', 'meet and greet'],
-      isPopular: true,
-    },
-    {
-      id: 'minnie_house_toontown',
-      name: 'ミニーマウス（ミニーの家）',
-      nameEn: 'Minnie Mouse (Minnie\'s House)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.LAND,
-      area: LandArea.TOONTOWN,
-      tags: ['minnie', 'house', 'meet and greet'],
-      isPopular: true,
-    },
-    {
-      id: 'donald_goofy_toontown',
-      name: 'ドナルドダック・グーフィー（トゥーンタウン）',
-      nameEn: 'Donald Duck & Goofy (Toontown)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.LAND,
-      area: LandArea.TOONTOWN,
-      tags: ['donald', 'goofy', 'classic'],
-    },
-    {
-      id: 'chip_dale_toontown',
-      name: 'チップ・デール（トゥーンタウン）',
-      nameEn: 'Chip & Dale (Toontown)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.LAND,
-      area: LandArea.TOONTOWN,
-      tags: ['chip', 'dale', 'chipmunks'],
-    },
-  ],
-
-  [LandArea.TOMORROWLAND]: [
-    {
-      id: 'buzz_lightyear_tomorrowland',
-      name: 'バズ・ライトイヤー（トゥモローランド）',
-      nameEn: 'Buzz Lightyear (Tomorrowland)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.LAND,
-      area: LandArea.TOMORROWLAND,
-      tags: ['toy story', 'buzz lightyear', 'space ranger'],
-      isPopular: true,
-    },
-    {
-      id: 'stitch_tomorrowland',
-      name: 'スティッチ（トゥモローランド）',
-      nameEn: 'Stitch (Tomorrowland)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.LAND,
-      area: LandArea.TOMORROWLAND,
-      tags: ['stitch', 'alien', 'hawaiian'],
-    },
-  ],
-
-  // Tokyo DisneySea Greetings
-  [SeaArea.MEDITERRANEAN_HARBOR]: [
-    {
-      id: 'mickey_minnie_mediterranean',
-      name: 'ミッキーマウス・ミニーマウス（メディテレーニアンハーバー）',
-      nameEn: 'Mickey Mouse & Minnie Mouse (Mediterranean Harbor)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.SEA,
-      area: SeaArea.MEDITERRANEAN_HARBOR,
-      tags: ['mickey', 'minnie', 'mediterranean', 'gondola'],
-      isPopular: true,
-    },
-    {
-      id: 'duffy_friends_mediterranean',
-      name: 'ダッフィー&フレンズ（メディテレーニアンハーバー）',
-      nameEn: 'Duffy & Friends (Mediterranean Harbor)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.SEA,
-      area: SeaArea.MEDITERRANEAN_HARBOR,
-      tags: ['duffy', 'shelliemay', 'gelatoni', 'stellalou'],
-      isPopular: true,
-    },
-  ],
-
-  [SeaArea.AMERICAN_WATERFRONT]: [
-    {
-      id: 'duffy_shelliemay_american',
-      name: 'ダッフィー・シェリーメイ（アメリカンウォーターフロント）',
-      nameEn: 'Duffy & ShellieMay (American Waterfront)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.SEA,
-      area: SeaArea.AMERICAN_WATERFRONT,
-      tags: ['duffy', 'shelliemay', 'bears', 'cape cod'],
-      isPopular: true,
-    },
-    {
-      id: 'mickey_minnie_american',
-      name: 'ミッキーマウス・ミニーマウス（アメリカンウォーターフロント）',
-      nameEn: 'Mickey Mouse & Minnie Mouse (American Waterfront)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.SEA,
-      area: SeaArea.AMERICAN_WATERFRONT,
-      tags: ['mickey', 'minnie', 'american', '1900s'],
-    },
-    {
-      id: 'toy_story_characters_american',
-      name: 'トイ・ストーリーキャラクター（アメリカンウォーターフロント）',
-      nameEn: 'Toy Story Characters (American Waterfront)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.SEA,
-      area: SeaArea.AMERICAN_WATERFRONT,
-      tags: ['toy story', 'woody', 'buzz', 'jessie'],
-    },
-  ],
-
-  [SeaArea.PORT_DISCOVERY]: [
-    {
-      id: 'nemo_friends_port_discovery',
-      name: 'ニモ&フレンズ（ポートディスカバリー）',
-      nameEn: 'Nemo & Friends (Port Discovery)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.SEA,
-      area: SeaArea.PORT_DISCOVERY,
-      tags: ['finding nemo', 'dory', 'crush', 'underwater'],
-    },
-  ],
-
-  [SeaArea.LOST_RIVER_DELTA]: [
-    {
-      id: 'mickey_minnie_explorer_lost_river',
-      name: 'ミッキーマウス・ミニーマウス（ロストリバーデルタ）',
-      nameEn: 'Mickey Mouse & Minnie Mouse (Lost River Delta)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.SEA,
-      area: SeaArea.LOST_RIVER_DELTA,
-      tags: ['mickey', 'minnie', 'explorer', 'adventurer'],
-    },
-    {
-      id: 'donald_jose_panchito_lost_river',
-      name: 'ドナルド・ホセ・パンチート（ロストリバーデルタ）',
-      nameEn: 'Donald, José & Panchito (Lost River Delta)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.SEA,
-      area: SeaArea.LOST_RIVER_DELTA,
-      tags: ['three caballeros', 'donald', 'jose', 'panchito'],
-    },
-  ],
-
-  [SeaArea.ARABIAN_COAST]: [
-    {
-      id: 'aladdin_jasmine_arabian',
-      name: 'アラジン・ジャスミン（アラビアンコースト）',
-      nameEn: 'Aladdin & Jasmine (Arabian Coast)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.SEA,
-      area: SeaArea.ARABIAN_COAST,
-      tags: ['aladdin', 'jasmine', 'arabian', 'agrabah'],
-      isPopular: true,
-    },
-    {
-      id: 'genie_arabian',
-      name: 'ジーニー（アラビアンコースト）',
-      nameEn: 'Genie (Arabian Coast)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.SEA,
-      area: SeaArea.ARABIAN_COAST,
-      tags: ['aladdin', 'genie', 'magic'],
-    },
-  ],
-
-  [SeaArea.MERMAID_LAGOON]: [
-    {
-      id: 'ariel_mermaid_lagoon',
-      name: 'アリエル（マーメイドラグーン）',
-      nameEn: 'Ariel (Mermaid Lagoon)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.SEA,
-      area: SeaArea.MERMAID_LAGOON,
-      tags: ['little mermaid', 'ariel', 'underwater', 'mermaid'],
-      isPopular: true,
-    },
-    {
-      id: 'eric_ariel_mermaid_lagoon',
-      name: 'エリック王子・アリエル（マーメイドラグーン）',
-      nameEn: 'Prince Eric & Ariel (Mermaid Lagoon)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.SEA,
-      area: SeaArea.MERMAID_LAGOON,
-      tags: ['little mermaid', 'ariel', 'eric', 'prince'],
-    },
-  ],
-
-  [SeaArea.MYSTERIOUS_ISLAND]: [
-    {
-      id: 'mickey_minnie_mysterious',
-      name: 'ミッキーマウス・ミニーマウス（ミステリアスアイランド）',
-      nameEn: 'Mickey Mouse & Minnie Mouse (Mysterious Island)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.SEA,
-      area: SeaArea.MYSTERIOUS_ISLAND,
-      tags: ['mickey', 'minnie', 'mysterious', 'volcano'],
-    },
-  ],
-
-  [SeaArea.FANTASY_SPRINGS]: [
-    {
-      id: 'anna_elsa_fantasy_springs',
-      name: 'アナ・エルサ（ファンタジースプリングス）',
-      nameEn: 'Anna & Elsa (Fantasy Springs)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.SEA,
-      area: SeaArea.FANTASY_SPRINGS,
-      tags: ['frozen', 'anna', 'elsa', 'arendelle'],
-      isPopular: true,
-      isNew: true,
-    },
-    {
-      id: 'rapunzel_flynn_fantasy_springs',
-      name: 'ラプンツェル・フリン（ファンタジースプリングス）',
-      nameEn: 'Rapunzel & Flynn (Fantasy Springs)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.SEA,
-      area: SeaArea.FANTASY_SPRINGS,
-      tags: ['tangled', 'rapunzel', 'flynn rider'],
-      isPopular: true,
-      isNew: true,
-    },
-    {
-      id: 'peter_pan_tinkerbell_fantasy_springs',
-      name: 'ピーターパン・ティンカーベル（ファンタジースプリングス）',
-      nameEn: 'Peter Pan & Tinker Bell (Fantasy Springs)',
-      category: ActionCategory.GREETING,
-      parkType: ParkType.SEA,
-      area: SeaArea.FANTASY_SPRINGS,
-      tags: ['peter pan', 'tinker bell', 'neverland', 'pixie dust'],
-      isPopular: true,
-      isNew: true,
-    },
-  ],
-};
-
-// Export all preset data
-export const ALL_PRESETS = {
-  attractions: PRESET_ATTRACTIONS_BY_AREA,
-  restaurants: PRESET_RESTAURANTS_BY_AREA,
-  shops: PRESET_SHOPS_BY_AREA,
-  greetings: PRESET_GREETINGS_BY_AREA,
-};
-
-// Helper functions to get data by park type
-export const getPresetsByParkType = (parkType: ParkType) => {
-  const isLand = parkType === ParkType.LAND;
-  const areas = isLand ? Object.values(LandArea) : Object.values(SeaArea);
-  
-  return {
-    attractions: areas.reduce((acc, area) => ({
-      ...acc,
-      [area]: PRESET_ATTRACTIONS_BY_AREA[area] || []
-    }), {}),
-    restaurants: areas.reduce((acc, area) => ({
-      ...acc,
-      [area]: PRESET_RESTAURANTS_BY_AREA[area] || []
-    }), {}),
-    shops: areas.reduce((acc, area) => ({
-      ...acc,
-      [area]: PRESET_SHOPS_BY_AREA[area] || []
-    }), {}),
-    greetings: areas.reduce((acc, area) => ({
-      ...acc,
-      [area]: PRESET_GREETINGS_BY_AREA[area] || []
-    }), {}),
-  };
-};
-
-// Helper function to search across all presets
-export const searchPresets = (query: string, category?: ActionCategory, parkType?: ParkType) => {
-  const results: PresetItem[] = [];
-  const lowerQuery = query.toLowerCase();
-  
-  Object.values(ALL_PRESETS).forEach(categoryData => {
-    Object.values(categoryData).forEach(areaItems => {
-      if (Array.isArray(areaItems)) {
-        areaItems.forEach(item => {
-          if (category && item.category !== category) return;
-          if (parkType && item.parkType !== parkType) return;
-          
-          if (
-            item.name.toLowerCase().includes(lowerQuery) ||
-            item.nameEn?.toLowerCase().includes(lowerQuery) ||
-            item.tags?.some(tag => tag.toLowerCase().includes(lowerQuery))
-          ) {
-            results.push(item);
-          }
-        });
-      }
-    });
-  });
-  
-  return results;
+export const PRESET_GREETING_BY_AREA = {
+  land: {
+    'トゥーンタウン': [
+      'ミッキーの家とミート・ミッキー',
+      'ミニーのスタイルスタジオ'
+    ],
+    'ウエスタンランド': [
+      'ウッドチャック・グリーティングトレイル'
+    ]
+  },
+  sea: {
+    'ロストリバーデルタ': [
+      'ミッキー＆フレンズ・グリーティングトレイル',
+      'サルードス・アミーゴス！グリーティングドック'
+    ],
+    'アメリカンウォーターフロント': [
+      'ヴィレッジ・グリーティングプレイス'
+    ],
+    'マーメイドラグーン': [
+      'アリエルのグリーティンググロット'
+    ]
+  }
 };

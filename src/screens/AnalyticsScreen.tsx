@@ -6,14 +6,19 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-  Platform,
+  Share,
+  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { colors } from '../styles/colors';
+import { Header } from '../components/Header';
+import { SwipeableScreen } from '../components/SwipeableScreen';
+import { DrawerMenu } from '../components/DrawerMenu';
 import { useVisits } from '../hooks/useVisits';
 import { useActions } from '../hooks/useActions';
 import { useResponsive, useColumns } from '../hooks/useResponsive';
@@ -25,6 +30,8 @@ import {
   LineChart,
   HeatMap,
   TopRankingList,
+  MonthlyVisitCalendar,
+  YearlyCalendarSlider,
   type SimplePieChartData,
   type BarChartData,
   type LineChartData,
@@ -51,9 +58,16 @@ interface CustomDateRange {
   endDate: Date;
 }
 
+// Specific period selector
+interface SpecificPeriod {
+  type: 'month' | 'year';
+  value: number; // month: 0-11, year: actual year
+}
+
 export const AnalyticsScreen = () => {
+  const navigation = useNavigation();
   const { theme } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const isDark = theme.mode === 'dark';
   
   // Add error state for crash handling
@@ -118,6 +132,7 @@ export const AnalyticsScreen = () => {
     isLoading: visitsLoading,
     getVisitStatistics,
     getFilteredVisits,
+    refreshData: refreshVisits,
   } = useVisits();
   
   const {
@@ -125,16 +140,22 @@ export const AnalyticsScreen = () => {
     isLoading: actionsLoading,
     getActionStatistics,
     getFilteredActions,
+    refreshData: refreshActions,
   } = useActions();
 
   // State
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>('yearly');
+  const [specificPeriod, setSpecificPeriod] = useState<SpecificPeriod>({
+    type: 'year',
+    value: new Date().getFullYear(),
+  });
   const [customDateRange, setCustomDateRange] = useState<CustomDateRange>({
     startDate: new Date(new Date().getFullYear(), 0, 1),
     endDate: new Date(),
   });
   const [selectedChart, setSelectedChart] = useState<string | null>(null);
-  const [isExporting, setIsExporting] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   // Responsive states
   const isTabletOrLarger = isBreakpoint('tablet');
@@ -152,21 +173,38 @@ export const AnalyticsScreen = () => {
 
   // Calculate current period filter
   const currentFilter = useMemo((): { visitFilter?: VisitFilter; actionFilter?: ActionFilter } => {
-    const now = new Date();
     let dateRange: DateRange | undefined;
 
     switch (selectedPeriod) {
       case 'monthly':
-        dateRange = {
-          startDate: new Date(now.getFullYear(), now.getMonth(), 1),
-          endDate: new Date(now.getFullYear(), now.getMonth() + 1, 0),
-        };
+        if (specificPeriod.type === 'month') {
+          const year = Math.floor(specificPeriod.value / 100);
+          const month = specificPeriod.value % 100;
+          dateRange = {
+            startDate: new Date(year, month, 1),
+            endDate: new Date(year, month + 1, 0),
+          };
+        } else {
+          const now = new Date();
+          dateRange = {
+            startDate: new Date(now.getFullYear(), now.getMonth(), 1),
+            endDate: new Date(now.getFullYear(), now.getMonth() + 1, 0),
+          };
+        }
         break;
       case 'yearly':
-        dateRange = {
-          startDate: new Date(now.getFullYear(), 0, 1),
-          endDate: new Date(now.getFullYear(), 11, 31),
-        };
+        if (specificPeriod.type === 'year') {
+          dateRange = {
+            startDate: new Date(specificPeriod.value, 0, 1),
+            endDate: new Date(specificPeriod.value, 11, 31),
+          };
+        } else {
+          const now = new Date();
+          dateRange = {
+            startDate: new Date(now.getFullYear(), 0, 1),
+            endDate: new Date(now.getFullYear(), 11, 31),
+          };
+        }
         break;
       case 'custom':
         dateRange = {
@@ -184,11 +222,32 @@ export const AnalyticsScreen = () => {
       visitFilter: dateRange ? { dateRange } : undefined,
       actionFilter: dateRange ? { dateRange } : undefined,
     };
-  }, [selectedPeriod, customDateRange]);
+  }, [selectedPeriod, specificPeriod, customDateRange]);
 
   // Analytics data
   const [visitStats, setVisitStats] = useState<any>(null);
   const [actionStats, setActionStats] = useState<any>(null);
+
+  // Refresh handler
+  const handleRefresh = async () => {
+    try {
+      await Promise.all([
+        refreshVisits && refreshVisits(),
+        refreshActions && refreshActions()
+      ]);
+    } catch (error) {
+      console.error('Error refreshing analytics data:', error);
+    }
+  };
+
+  // Auto-refresh when screen comes into focus
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      handleRefresh();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   // Load analytics data with comprehensive error handling
   useEffect(() => {
@@ -246,55 +305,53 @@ export const AnalyticsScreen = () => {
     };
   }, [currentFilter, isLoading, getVisitStatistics, getActionStatistics]);
 
-  // Statistics cards data
+  // Statistics cards data with proper translation and debugging
   const statsCards = useMemo(() => {
-    if (!visitStats || !actionStats) return [];
+    if (!visitStats || !actionStats || !t) return [];
 
-    // Add safety checks for all data access
-    const safeVisitStats = {
-      totalVisits: visitStats?.totalVisits || 0,
-      averageVisitDuration: visitStats?.averageVisitDuration || null,
-    };
+    const totalVisits = visitStats?.totalVisits || 0;
+    const totalActions = actionStats?.totalActions || 0;
+    const photoCount = actionStats?.photoCount || 0;
+    const avgActionsPerVisit = actionStats?.averageActionsPerVisit || 0;
+    const avgDuration = visitStats?.averageVisitDuration;
 
-    const safeActionStats = {
-      totalActions: actionStats?.totalActions || 0,
-      averageActionsPerVisit: actionStats?.averageActionsPerVisit || 0,
-      photoCount: actionStats?.photoCount || 0,
-    };
+    // Debug: Log the translation function and language
+    console.log('Current language:', language);
+    console.log('Translation test:', t('analytics.totalVisits'));
 
     return [
       {
-        title: t('analytics.totalVisits'),
-        value: safeVisitStats.totalVisits,
+        title: t('analytics.totalVisits') || (language === 'ja' ? '総来園回数' : 'Total Visits'),
+        value: totalVisits,
         icon: 'calendar' as keyof typeof Ionicons.glyphMap,
         color: colors.purple[500],
-        subtitle: selectedPeriod === 'all-time' ? t('analytics.allTime') : t('analytics.thisPeriod'),
+        subtitle: selectedPeriod === 'all-time' 
+          ? (t('analytics.allTime') || (language === 'ja' ? '全期間' : 'All Time'))
+          : (t('analytics.thisPeriod') || (language === 'ja' ? 'この期間' : 'This Period')),
       },
       {
-        title: t('analytics.totalActions'),
-        value: safeActionStats.totalActions,
+        title: t('analytics.totalActions') || (language === 'ja' ? '総アクティビティ数' : 'Total Actions'),
+        value: totalActions,
         icon: 'rocket' as keyof typeof Ionicons.glyphMap,
         color: '#3b82f6',
-        subtitle: `${safeActionStats.averageActionsPerVisit.toFixed(1)} ${t('analytics.perVisit')}`,
+        subtitle: `${avgActionsPerVisit.toFixed(1)} ${t('analytics.perVisit') || (language === 'ja' ? '来園あたり' : 'per visit')}`,
       },
       {
-        title: t('analytics.photosTaken'),
-        value: safeActionStats.photoCount,
+        title: t('analytics.photosTaken') || (language === 'ja' ? '撮影写真数' : 'Photos Taken'),
+        value: photoCount,
         icon: 'camera' as keyof typeof Ionicons.glyphMap,
         color: '#22c55e',
-        subtitle: t('analytics.memoriesCaptured'),
+        subtitle: t('analytics.memoriesCaptured') || (language === 'ja' ? '記録された思い出' : 'Memories Captured'),
       },
       {
-        title: t('analytics.avgVisitDuration'),
-        value: safeVisitStats.averageVisitDuration
-          ? `${Math.round(safeVisitStats.averageVisitDuration / 60)}h`
-          : 'N/A',
+        title: t('analytics.avgVisitDuration') || (language === 'ja' ? '平均滞在時間' : 'Avg Duration'),
+        value: avgDuration ? `${Math.round(avgDuration / 60)}h` : 'N/A',
         icon: 'time' as keyof typeof Ionicons.glyphMap,
         color: '#facc15',
-        subtitle: t('analytics.hoursPerVisit'),
+        subtitle: t('analytics.hoursPerVisit') || (language === 'ja' ? '来園あたりの時間' : 'Hours per visit'),
       },
     ];
-  }, [visitStats, actionStats, selectedPeriod, t]);
+  }, [visitStats, actionStats, selectedPeriod, t, language]);
 
   // Pie chart data for park visits
   const parkVisitsData = useMemo((): SimplePieChartData[] => {
@@ -303,15 +360,6 @@ export const AnalyticsScreen = () => {
     const totalVisits = visitStats.totalVisits || 0;
     const landVisits = visitStats.landVisits || 0;
     const seaVisits = visitStats.seaVisits || 0;
-
-    // Debug logging for park visits data
-    console.log('Park visits data:', {
-      totalVisits,
-      landVisits,
-      seaVisits,
-      visitStats,
-      purpleColor: colors.purple[500]
-    });
 
     const data = [
       {
@@ -329,26 +377,6 @@ export const AnalyticsScreen = () => {
     ];
 
     const filteredData = data.filter(item => item.value > 0);
-    console.log('Filtered park visits data:', filteredData);
-    
-    // If no real data, return test data for debugging
-    if (filteredData.length === 0) {
-      console.log('No park visit data, returning test data');
-      return [
-        {
-          label: 'Tokyo Disneyland',
-          value: 15,
-          color: '#9333ea',
-          percentage: 60,
-        },
-        {
-          label: 'Tokyo DisneySea',
-          value: 10,
-          color: '#06b6d4',
-          percentage: 40,
-        },
-      ];
-    }
     
     return filteredData;
   }, [visitStats]);
@@ -491,61 +519,22 @@ export const AnalyticsScreen = () => {
       }));
   }, [actionStats]);
 
-  // Visits over time line chart
-  const visitsTimelineData = useMemo((): LineChartData[] => {
-    try {
-      if (!visitStats || typeof visitStats !== 'object') return [];
-
-      if (selectedPeriod === 'yearly' || selectedPeriod === 'all-time') {
-        if (!visitStats.visitsByYear || !Array.isArray(visitStats.visitsByYear)) {
-          return [];
+  // Get years with visits for calendar display
+  const yearsWithVisits = useMemo(() => {
+    if (!visits || !Array.isArray(visits)) return [];
+    
+    const years = new Set<number>();
+    visits.forEach(visit => {
+      if (visit?.date) {
+        const year = new Date(visit.date).getFullYear();
+        if (!isNaN(year)) {
+          years.add(year);
         }
-        return visitStats.visitsByYear
-          .filter(item => item && typeof item === 'object')
-          .map((item: any) => {
-            try {
-              return {
-                x: item?.year?.toString() || '0',
-                y: typeof item?.count === 'number' ? item.count : 0,
-                label: item?.year?.toString() || '0',
-              };
-            } catch (error) {
-              console.warn('Error processing year data:', item, error);
-              return { x: '0', y: 0, label: '0' };
-            }
-          });
-      } else {
-        if (!visitStats.visitsByMonth || !Array.isArray(visitStats.visitsByMonth)) {
-          return [];
-        }
-        return visitStats.visitsByMonth
-          .filter(item => item && typeof item === 'object')
-          .map((item: any) => {
-            try {
-              let label = '';
-              if (item?.month && typeof item.month === 'string') {
-                try {
-                  label = new Date(item.month + '-01').toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-                } catch (dateError) {
-                  label = item.month;
-                }
-              }
-              return {
-                x: item?.month || '',
-                y: typeof item?.count === 'number' ? item.count : 0,
-                label,
-              };
-            } catch (error) {
-              console.warn('Error processing month data:', item, error);
-              return { x: '', y: 0, label: '' };
-            }
-          });
       }
-    } catch (error) {
-      console.error('Error in visitsTimelineData:', error);
-      return [];
-    }
-  }, [visitStats, selectedPeriod]);
+    });
+    
+    return Array.from(years).sort((a, b) => b - a);
+  }, [visits]);
 
   // Heat map data for visit frequency
   const visitHeatMapData = useMemo((): HeatMapData[] => {
@@ -577,40 +566,84 @@ export const AnalyticsScreen = () => {
     }));
   }, [visitStats]);
 
-  // Export functionality
-  const handleExport = async () => {
+  // Share functionality
+  const handleShare = async () => {
     try {
-      setIsExporting(true);
+      setIsSharing(true);
       
-      // Create a simple analytics report
-      const report = {
-        period: selectedPeriod,
-        generatedAt: new Date().toISOString(),
-        stats: {
-          totalVisits: visitStats?.totalVisits || 0,
-          totalActions: actionStats?.totalActions || 0,
-          photoCount: actionStats?.photoCount || 0,
-        },
-        topAttractions: topAttractionsData.slice(0, 5),
-        topRestaurants: topRestaurantsData.slice(0, 5),
-      };
+      // Create shareable text with emojis
+      const currentYear = specificPeriod.type === 'year' ? specificPeriod.value : new Date().getFullYear();
+      const periodText = selectedPeriod === 'yearly' ? `${currentYear}年` : 
+        selectedPeriod === 'monthly' ? '今月' : 
+        selectedPeriod === 'all-time' ? '全期間' : '期間';
+      
+      const topAttraction = topAttractionsData.length > 0 ? topAttractionsData[0]?.name : null;
+      const topRestaurant = topRestaurantsData.length > 0 ? topRestaurantsData[0]?.name : null;
+      
+      let shareText = `🏰 TDR Days ${periodText}の記録 ✨\n\n`;
+      shareText += `📊 来園数: ${visitStats?.totalVisits || 0}回\n`;
+      shareText += `🎢 アクション数: ${actionStats?.totalActions || 0}件\n`;
+      shareText += `📸 写真: ${actionStats?.photoCount || 0}枚\n\n`;
+      
+      if (topAttraction) {
+        shareText += `🎯 よく行くアトラクション: ${topAttraction}\n`;
+      }
+      if (topRestaurant) {
+        shareText += `🍽️ よく行くレストラン: ${topRestaurant}\n`;
+      }
+      
+      shareText += `\n#TDRDays #ディズニー #東京ディズニーリゾート`;
 
-      // For now, just show the data in an alert
-      const topAttraction = topAttractionsData.length > 0 ? topAttractionsData[0]?.name : 'None';
-      const topRestaurant = topRestaurantsData.length > 0 ? topRestaurantsData[0]?.name : 'None';
-      
-      const summary = `${t('analytics.title')} (${selectedPeriod}):\n\n` +
-        `• ${t('analytics.totalVisits')}: ${report.stats.totalVisits}\n` +
-        `• ${t('analytics.totalActions')}: ${report.stats.totalActions}\n` +
-        `• ${t('analytics.photosTaken')}: ${report.stats.photoCount}\n\n` +
-        `${t('analytics.topAttractions')}: ${topAttraction}\n` +
-        `${t('analytics.favoriteRestaurants')}: ${topRestaurant}`;
-      
-      Alert.alert(t('analytics.exportSuccess'), summary);
+      // Show share options
+      Alert.alert(
+        '共有',
+        'どこに共有しますか？',
+        [
+          {
+            text: 'キャンセル',
+            style: 'cancel',
+          },
+          {
+            text: 'Twitter',
+            onPress: () => shareToTwitter(shareText),
+          },
+          {
+            text: 'その他',
+            onPress: () => shareGeneral(shareText),
+          },
+        ]
+      );
     } catch (error) {
-      Alert.alert(t('analytics.exportError'), t('analytics.exportErrorMessage'));
+      Alert.alert('エラー', '共有に失敗しました');
     } finally {
-      setIsExporting(false);
+      setIsSharing(false);
+    }
+  };
+
+  const shareToTwitter = async (text: string) => {
+    try {
+      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+      const canOpen = await Linking.canOpenURL(twitterUrl);
+      
+      if (canOpen) {
+        await Linking.openURL(twitterUrl);
+      } else {
+        // Fallback to general share
+        await shareGeneral(text);
+      }
+    } catch (error) {
+      await shareGeneral(text);
+    }
+  };
+
+  const shareGeneral = async (text: string) => {
+    try {
+      await Share.share({
+        message: text,
+        title: 'TDR Days 分析結果',
+      });
+    } catch (error) {
+      Alert.alert('エラー', '共有に失敗しました');
     }
   };
 
@@ -668,14 +701,12 @@ export const AnalyticsScreen = () => {
           console.error('Error rendering SimplePieChart:', error);
           return null;
         }
-      case 'line':
+      case 'calendar':
         return (
-          <LineChart
+          <MonthlyVisitCalendar
             key={chart.key}
-            data={chart.data}
-            title={chart.title}
-            color={chart.color}
-            height={isTabletOrLarger ? 320 : 280}
+            visits={visits}
+            year={chart.year}
             animationDelay={chart.delay}
           />
         );
@@ -755,17 +786,6 @@ export const AnalyticsScreen = () => {
       }
     }
     
-    if (visitsTimelineData.length > 0) {
-      charts.push({
-        key: 'visits-timeline',
-        type: 'line',
-        data: visitsTimelineData,
-        title: t('analytics.visitsOverTime'),
-        color: colors.purple[500],
-        delay: 800,
-      });
-    }
-    
     if (areaDistributionData.length > 0) {
       charts.push({
         key: 'area-distribution',
@@ -788,7 +808,7 @@ export const AnalyticsScreen = () => {
     }
     
     return charts;
-  }, [parkVisitsData, actionCategoriesData, visitsTimelineData, areaDistributionData, visitHeatMapData]);
+  }, [parkVisitsData, actionCategoriesData, areaDistributionData, visitHeatMapData]);
 
   // Handle error state
   if (hasError) {
@@ -827,75 +847,42 @@ export const AnalyticsScreen = () => {
   }
 
   return (
-    <ResponsiveContainer
-      padding={false}
-      style={styles.container}
-    >
-      {/* Clean Header */}
-      <View style={[
-        styles.header,
-        {
-          backgroundColor: colors.background.primary,
-          paddingTop: Platform.OS === 'ios' ? 60 : 40,
-          paddingHorizontal: rSpacing(20),
-          marginBottom: rSpacing(24),
-        }
-      ]}>
-        <View style={[
-          styles.headerContent,
-          {
-            backgroundColor: colors.background.card,
-            borderRadius: rSpacing(20),
-            padding: rSpacing(24),
-            borderWidth: 1,
-            borderColor: colors.utility.borderLight,
+    <SwipeableScreen onSwipeFromLeft={() => setMenuVisible(true)}>
+      <View style={styles.container}>
+        <Header 
+          title={t('nav.analytics')} 
+          onMenuOpen={() => setMenuVisible(true)}
+          rightComponent={
+            <TouchableOpacity
+              onPress={handleShare}
+              style={[
+                styles.shareButton,
+                {
+                  backgroundColor: colors.purple.bright + '15',
+                  padding: rSpacing(12),
+                  borderRadius: rSpacing(12),
+                  borderWidth: 1,
+                  borderColor: colors.purple.bright + '30',
+                }
+              ]}
+              disabled={isSharing || isLoading}
+            >
+              <Ionicons
+                name={isSharing ? 'hourglass' : 'share'}
+                size={20}
+                color={colors.purple.bright}
+              />
+            </TouchableOpacity>
           }
-        ]}>
-          <View style={{ flex: 1 }}>
-            <Text style={[
-              styles.headerTitle, 
-              { 
-                color: theme.colors.text.primary,
-                fontSize: rFontSize(28),
-              }
-            ]}>
-              {t('analytics.title')}
-            </Text>
-            <Text style={[
-              styles.headerSubtitle, 
-              { 
-                color: theme.colors.text.secondary,
-                fontSize: rFontSize(16),
-              }
-            ]}>
-              {t('analytics.subtitle')}
-            </Text>
-          </View>
-          <TouchableOpacity
-            onPress={handleExport}
-            style={[
-              styles.exportButton,
-              {
-                backgroundColor: colors.purple.bright + '15',
-                padding: rSpacing(12),
-                borderRadius: rSpacing(12),
-                borderWidth: 1,
-                borderColor: colors.purple.bright + '30',
-              }
-            ]}
-            disabled={isExporting || isLoading}
-          >
-            <Ionicons
-              name={isExporting ? 'hourglass' : 'download'}
-              size={20}
-              color={colors.purple.bright}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
+        />
+        
+        <ResponsiveContainer
+          padding={false}
+          style={styles.scrollableContent}
+        >
 
       {/* Period Selector */}
-      <ResponsiveSection spacing="sm">
+      <ResponsiveSection spacing="lg" style={{ marginTop: rSpacing(24) }}>
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false}
@@ -905,7 +892,14 @@ export const AnalyticsScreen = () => {
             {periods.map((period) => (
               <TouchableOpacity
                 key={period.key}
-                onPress={() => setSelectedPeriod(period.key)}
+                onPress={() => {
+                  setSelectedPeriod(period.key);
+                  if (period.key === 'monthly') {
+                    setSpecificPeriod({ type: 'month', value: new Date().getFullYear() * 100 + new Date().getMonth() });
+                  } else if (period.key === 'yearly') {
+                    setSpecificPeriod({ type: 'year', value: new Date().getFullYear() });
+                  }
+                }}
                 style={[
                   styles.periodButton,
                   selectedPeriod === period.key && styles.periodButtonActive,
@@ -958,6 +952,100 @@ export const AnalyticsScreen = () => {
             ))}
           </View>
         </ScrollView>
+        
+        {/* Specific Period Selector */}
+        {(selectedPeriod === 'monthly' || selectedPeriod === 'yearly') && (
+          <View style={[styles.specificPeriodContainer, { paddingHorizontal: rSpacing(20), marginTop: rSpacing(20) }]}>
+            {selectedPeriod === 'yearly' && (
+              <View style={styles.yearSelector}>
+                <TouchableOpacity
+                  onPress={() => setSpecificPeriod(prev => ({ ...prev, value: prev.value - 1 }))}
+                  style={[styles.periodArrow, { backgroundColor: theme.colors.background.elevated }]}
+                >
+                  <Ionicons name="chevron-back" size={20} color={theme.colors.text.secondary} />
+                </TouchableOpacity>
+                
+                <View style={[styles.periodDisplay, { backgroundColor: theme.colors.background.elevated }]}>
+                  <Text style={[styles.periodDisplayText, { color: theme.colors.text.primary }]}>
+                    {specificPeriod.value}年
+                  </Text>
+                </View>
+                
+                <TouchableOpacity
+                  onPress={() => setSpecificPeriod(prev => ({ ...prev, value: prev.value + 1 }))}
+                  style={[styles.periodArrow, { backgroundColor: theme.colors.background.elevated }]}
+                  disabled={specificPeriod.value >= new Date().getFullYear()}
+                >
+                  <Ionicons 
+                    name="chevron-forward" 
+                    size={20} 
+                    color={specificPeriod.value >= new Date().getFullYear() ? theme.colors.text.disabled : theme.colors.text.secondary} 
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
+            
+            {selectedPeriod === 'monthly' && (
+              <View style={styles.monthSelector}>
+                <TouchableOpacity
+                  onPress={() => {
+                    const currentYear = Math.floor(specificPeriod.value / 100);
+                    const currentMonth = specificPeriod.value % 100;
+                    const newMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+                    const newYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+                    setSpecificPeriod({ type: 'month', value: newYear * 100 + newMonth });
+                  }}
+                  style={[styles.periodArrow, { backgroundColor: theme.colors.background.elevated }]}
+                >
+                  <Ionicons name="chevron-back" size={20} color={theme.colors.text.secondary} />
+                </TouchableOpacity>
+                
+                <View style={[styles.periodDisplay, { backgroundColor: theme.colors.background.elevated }]}>
+                  <Text style={[styles.periodDisplayText, { color: theme.colors.text.primary }]}>
+                    {Math.floor(specificPeriod.value / 100)}年{(specificPeriod.value % 100) + 1}月
+                  </Text>
+                </View>
+                
+                <TouchableOpacity
+                  onPress={() => {
+                    const currentYear = Math.floor(specificPeriod.value / 100);
+                    const currentMonth = specificPeriod.value % 100;
+                    const now = new Date();
+                    const isCurrentOrFuture = currentYear > now.getFullYear() || 
+                      (currentYear === now.getFullYear() && currentMonth >= now.getMonth());
+                    
+                    if (!isCurrentOrFuture) {
+                      const newMonth = currentMonth === 11 ? 0 : currentMonth + 1;
+                      const newYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+                      setSpecificPeriod({ type: 'month', value: newYear * 100 + newMonth });
+                    }
+                  }}
+                  style={[styles.periodArrow, { backgroundColor: theme.colors.background.elevated }]}
+                  disabled={(() => {
+                    const currentYear = Math.floor(specificPeriod.value / 100);
+                    const currentMonth = specificPeriod.value % 100;
+                    const now = new Date();
+                    return currentYear > now.getFullYear() || 
+                      (currentYear === now.getFullYear() && currentMonth >= now.getMonth());
+                  })()}
+                >
+                  <Ionicons 
+                    name="chevron-forward" 
+                    size={20} 
+                    color={(() => {
+                      const currentYear = Math.floor(specificPeriod.value / 100);
+                      const currentMonth = specificPeriod.value % 100;
+                      const now = new Date();
+                      const isDisabled = currentYear > now.getFullYear() || 
+                        (currentYear === now.getFullYear() && currentMonth >= now.getMonth());
+                      return isDisabled ? theme.colors.text.disabled : theme.colors.text.secondary;
+                    })()}
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
       </ResponsiveSection>
 
       {/* Loading State */}
@@ -979,23 +1067,42 @@ export const AnalyticsScreen = () => {
           <ResponsiveSection spacing="lg">
             <View style={[styles.statsGrid, { paddingHorizontal: rSpacing(20) }]}>
               {statsCards.map((stat, index) => {
-                // Safe width calculation with fallbacks
-                const safeStatsColumns = Math.max(1, statsColumns || 2);
-                const safeDimensionsWidth = Math.max(300, dimensions?.width || 300);
-                const safeSpacing = rSpacing ? rSpacing(52) : 52;
-                const cardWidth = Math.max(100, (safeDimensionsWidth - safeSpacing) / safeStatsColumns);
-                
-                // Additional validation
-                const finalCardWidth = isNaN(cardWidth) ? 150 : cardWidth;
-                
                 return (
-                  <View key={index} style={[styles.statCardWrapper, { width: finalCardWidth }]}>
+                  <View 
+                    key={`stat-card-${index}`} 
+                    style={styles.statCardWrapper}
+                  >
                     {renderStatCard(stat, index)}
                   </View>
                 );
               })}
             </View>
           </ResponsiveSection>
+
+          {/* Monthly Visit Calendar Section */}
+          {selectedPeriod === 'yearly' && specificPeriod.type === 'year' && (
+            <ResponsiveSection spacing="lg">
+              <View style={[styles.calendarSection, { paddingHorizontal: rSpacing(20) }]}>
+                <MonthlyVisitCalendar
+                  visits={visits}
+                  year={specificPeriod.value}
+                  animationDelay={800}
+                />
+              </View>
+            </ResponsiveSection>
+          )}
+
+          {/* Yearly Calendar Slider - Only show for all-time period */}
+          {selectedPeriod === 'all-time' && yearsWithVisits.length > 0 && (
+            <ResponsiveSection spacing="lg">
+              <View style={[styles.calendarSection, { paddingHorizontal: rSpacing(20) }]}>
+                <YearlyCalendarSlider
+                  visits={visits}
+                  animationDelay={800}
+                />
+              </View>
+            </ResponsiveSection>
+          )}
 
           {/* Charts Section */}
           <ResponsiveSection spacing="lg">
@@ -1060,9 +1167,16 @@ export const AnalyticsScreen = () => {
         </>
       )}
 
-      {/* Bottom spacing */}
-      <View style={{ height: rSpacing(100) }} />
-    </ResponsiveContainer>
+        {/* Bottom spacing */}
+        <View style={{ height: rSpacing(100) }} />
+        </ResponsiveContainer>
+      </View>
+      
+      <DrawerMenu
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+      />
+    </SwipeableScreen>
   );
 };
 
@@ -1070,24 +1184,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    width: '100%',
-    paddingBottom: 0,
+  scrollableContent: {
+    flex: 1,
   },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-  },
-  headerTitle: {
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  headerSubtitle: {
-    lineHeight: 24,
-  },
-  exportButton: {
+  shareButton: {
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1116,15 +1216,50 @@ const styles = StyleSheet.create({
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    justifyContent: 'space-between',
   },
   statCardWrapper: {
-    // Width calculated dynamically
+    width: '48%',
+    marginBottom: 16,
+  },
+  calendarSection: {
+    gap: 24,
   },
   chartsSection: {
     gap: 24,
   },
   rankingsSection: {
     gap: 24,
+  },
+  specificPeriodContainer: {
+    alignItems: 'center',
+  },
+  yearSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  monthSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  periodArrow: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  periodDisplay: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    minWidth: 120,
+    alignItems: 'center',
+  },
+  periodDisplayText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

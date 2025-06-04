@@ -2,7 +2,8 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useTheme } from '../contexts/ThemeContext';
-import { DrawerNavigator } from './DrawerNavigator';
+import { TabNavigator } from './TabNavigator';
+import { VisitDetailScreen } from '../screens';
 import { colors } from '../styles/colors';
 
 const Stack = createStackNavigator();
@@ -33,7 +34,8 @@ export const AppNavigator = () => {
           },
         }}
       >
-        <Stack.Screen name="Main" component={DrawerNavigator} />
+        <Stack.Screen name="Main" component={TabNavigator} />
+        <Stack.Screen name="VisitDetail" component={VisitDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

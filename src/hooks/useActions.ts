@@ -28,6 +28,7 @@ interface UseActionsReturn {
   createAction: (action: CreateInput<TimelineAction>) => Promise<TimelineAction>;
   updateAction: (id: string, updates: UpdateInput<TimelineAction>) => Promise<TimelineAction | null>;
   deleteAction: (id: string) => Promise<boolean>;
+  deleteAllActions: () => Promise<boolean>;
   getAction: (id: string) => Promise<TimelineAction | null>;
 
   // Batch operations
@@ -164,6 +165,32 @@ export function useActions(): UseActionsReturn {
 
       await loadData();
       return result;
+    } catch (err) {
+      setError(err as StorageError);
+      throw err;
+    }
+  }, []);
+
+  const deleteAllActions = useCallback(async (): Promise<boolean> => {
+    try {
+      // Clear all actions
+      await storage.clear(STORAGE_KEYS.ACTIONS);
+      
+      // Reset action counts in all visits
+      const allVisits = await storage.getAll<Visit>(STORAGE_KEYS.VISITS);
+      if (allVisits.length > 0) {
+        const updates = allVisits.map(visit => ({
+          id: visit.id,
+          data: { 
+            actionCount: 0,
+            totalPhotoCount: 0
+          }
+        }));
+        await storage.updateMany<Visit>(STORAGE_KEYS.VISITS, updates);
+      }
+      
+      await loadData();
+      return true;
     } catch (err) {
       setError(err as StorageError);
       throw err;
@@ -338,12 +365,17 @@ export function useActions(): UseActionsReturn {
     dateRange: DateRange
   ): Promise<TimelineAction[]> => {
     try {
-      // First get visits in date range
+      // First get visits in date range (using JST)
       const visits = await storage.find<Visit>(
         STORAGE_KEYS.VISITS,
         visit => {
+          const jstOffset = 9 * 60; // JST is UTC+9
           const visitDate = new Date(visit.date);
-          return visitDate >= dateRange.startDate && visitDate <= dateRange.endDate;
+          const visitDateJST = new Date(visitDate.getTime() + (jstOffset * 60 * 1000));
+          const startDateJST = new Date(dateRange.startDate.getTime() + (jstOffset * 60 * 1000));
+          const endDateJST = new Date(dateRange.endDate.getTime() + (jstOffset * 60 * 1000));
+          
+          return visitDateJST >= startDateJST && visitDateJST <= endDateJST;
         }
       );
       const visitIds = visits.map(v => v.id);
@@ -467,19 +499,26 @@ export function useActions(): UseActionsReturn {
         ? await getFilteredActions(filter)
         : await storage.getAll<TimelineAction>(STORAGE_KEYS.ACTIONS);
 
-      // Apply date range filter if needed
+      // Apply date range filter if needed (using JST)
       if (filter?.dateRange) {
         const visits = await storage.find<Visit>(
           STORAGE_KEYS.VISITS,
           visit => {
+            const jstOffset = 9 * 60; // JST is UTC+9
             const visitDate = new Date(visit.date);
-            return visitDate >= filter.dateRange!.startDate && 
-                   visitDate <= filter.dateRange!.endDate;
+            const visitDateJST = new Date(visitDate.getTime() + (jstOffset * 60 * 1000));
+            const startDateJST = new Date(filter.dateRange!.startDate.getTime() + (jstOffset * 60 * 1000));
+            const endDateJST = new Date(filter.dateRange!.endDate.getTime() + (jstOffset * 60 * 1000));
+            
+            return visitDateJST >= startDateJST && visitDateJST <= endDateJST;
           }
         );
         const visitIds = new Set(visits.map(v => v.id));
         filteredActions = filteredActions.filter(action => visitIds.has(action.visitId));
       }
+
+      // Exclude custom actions from analytics calculations
+      filteredActions = filteredActions.filter(action => action.category !== ActionCategory.CUSTOM);
 
       // Calculate actions by category
       const actionsByCategory = filteredActions.reduce((acc, action) => {
@@ -595,6 +634,7 @@ export function useActions(): UseActionsReturn {
     createAction,
     updateAction,
     deleteAction,
+    deleteAllActions,
     getAction,
 
     // Batch operations

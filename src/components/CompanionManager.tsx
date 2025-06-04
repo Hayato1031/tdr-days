@@ -8,11 +8,13 @@ import {
   Alert,
   Animated,
   Dimensions,
+  ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { colors } from '../styles/colors';
 import { spacing, borderRadius } from '../styles/theme';
 import { Companion } from '../types/models';
@@ -26,6 +28,10 @@ interface CompanionManagerProps {
   onCompanionCreate: (name: string) => Promise<void>;
   onCompanionDelete?: (companionId: string) => Promise<void>;
   isCreating?: boolean;
+  onInputFocus?: () => void;
+  onInputBlur?: () => void;
+  titleRef?: React.RefObject<View>;
+  onAddButtonPress?: () => void;
 }
 
 export const CompanionManager: React.FC<CompanionManagerProps> = ({
@@ -35,16 +41,25 @@ export const CompanionManager: React.FC<CompanionManagerProps> = ({
   onCompanionCreate,
   onCompanionDelete,
   isCreating = false,
+  onInputFocus,
+  onInputBlur,
+  titleRef,
+  onAddButtonPress,
 }) => {
   const { theme } = useTheme();
+  const { language } = useLanguage();
   const isDark = theme.mode === 'dark';
   
   const [showAddForm, setShowAddForm] = useState(false);
   const [newCompanionName, setNewCompanionName] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showAll, setShowAll] = useState(false);
   
   const slideAnim = useRef(new Animated.Value(0)).current;
   const scaleAnims = useRef(new Map<string, Animated.Value>()).current;
+  
+  const MAX_DISPLAY_COUNT = 5;
 
   // Initialize scale animations for companions
   React.useEffect(() => {
@@ -67,6 +82,10 @@ export const CompanionManager: React.FC<CompanionManagerProps> = ({
       });
     } else {
       setShowAddForm(true);
+      // Call the scroll callback when opening the form
+      if (onAddButtonPress) {
+        onAddButtonPress();
+      }
       Animated.timing(slideAnim, {
         toValue: 1,
         duration: 300,
@@ -77,7 +96,10 @@ export const CompanionManager: React.FC<CompanionManagerProps> = ({
 
   const handleAddCompanion = async () => {
     if (!newCompanionName.trim()) {
-      Alert.alert('Error', 'Please enter a companion name');
+      Alert.alert(
+        language === 'ja' ? 'エラー' : 'Error',
+        language === 'ja' ? '同行者の名前を入力してください' : 'Please enter a companion name'
+      );
       return;
     }
 
@@ -87,7 +109,10 @@ export const CompanionManager: React.FC<CompanionManagerProps> = ({
       setNewCompanionName('');
       toggleAddForm();
     } catch (error) {
-      Alert.alert('Error', 'Failed to add companion');
+      Alert.alert(
+        language === 'ja' ? 'エラー' : 'Error',
+        language === 'ja' ? '同行者の追加に失敗しました' : 'Failed to add companion'
+      );
     } finally {
       setIsAdding(false);
     }
@@ -281,9 +306,9 @@ export const CompanionManager: React.FC<CompanionManagerProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View ref={titleRef} style={styles.header}>
         <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>
-          一緒に行く人は？
+          {language === 'ja' ? '一緒に行く人は？' : 'Who are you going with?'}
         </Text>
         <TouchableOpacity
           onPress={toggleAddForm}
@@ -350,10 +375,12 @@ export const CompanionManager: React.FC<CompanionManagerProps> = ({
                         : 'rgba(0, 0, 0, 0.05)',
                     },
                   ]}
-                  placeholder="一緒に行く人の名前を入力"
+                  placeholder={language === 'ja' ? '一緒に行く人の名前を入力' : 'Enter companion name'}
                   placeholderTextColor={theme.colors.text.secondary}
                   value={newCompanionName}
                   onChangeText={setNewCompanionName}
+                  onFocus={onInputFocus}
+                  onBlur={onInputBlur}
                   autoFocus
                   maxLength={50}
                 />
@@ -375,7 +402,7 @@ export const CompanionManager: React.FC<CompanionManagerProps> = ({
                         { color: theme.colors.text.secondary },
                       ]}
                     >
-                      キャンセル
+                      {language === 'ja' ? 'キャンセル' : 'Cancel'}
                     </Text>
                   </TouchableOpacity>
                   
@@ -397,7 +424,10 @@ export const CompanionManager: React.FC<CompanionManagerProps> = ({
                         { color: colors.utility.white },
                       ]}
                     >
-                      {isAdding ? '追加中...' : '追加'}
+                      {isAdding 
+                        ? (language === 'ja' ? '追加中...' : 'Adding...') 
+                        : (language === 'ja' ? '追加' : 'Add')
+                      }
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -407,15 +437,98 @@ export const CompanionManager: React.FC<CompanionManagerProps> = ({
         </Animated.View>
       )}
 
+      {/* Search Bar */}
+      {companions.length > 3 && (
+        <View style={styles.searchContainer}>
+          <View style={[
+            styles.searchBar,
+            {
+              backgroundColor: isDark
+                ? theme.colors.background.secondary
+                : theme.colors.background.elevated,
+            }
+          ]}>
+            <Ionicons name="search" size={20} color={theme.colors.text.secondary} />
+            <TextInput
+              style={[
+                styles.searchInput,
+                { color: theme.colors.text.primary }
+              ]}
+              placeholder={language === 'ja' ? '名前で検索...' : 'Search by name...'}
+              placeholderTextColor={theme.colors.text.secondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onFocus={onInputFocus}
+              onBlur={onInputBlur}
+            />
+            {searchQuery && (
+              <TouchableOpacity
+                onPress={() => setSearchQuery('')}
+                style={styles.clearButton}
+              >
+                <Ionicons name="close-circle" size={20} color={theme.colors.text.secondary} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      )}
+
       {/* Companions List */}
       {companions.length > 0 ? (
         <View style={styles.listContainer}>
-          {companions.map((companion, index) => (
-            <View key={companion.id}>
-              {renderCompanionItem({ item: companion, index })}
-              {index < companions.length - 1 && <View style={{ height: spacing[3] }} />}
-            </View>
-          ))}
+          {(() => {
+            const filteredCompanions = companions.filter(companion =>
+              companion.name.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+            const displayCompanions = showAll || searchQuery
+              ? filteredCompanions
+              : filteredCompanions.slice(0, MAX_DISPLAY_COUNT);
+            
+            return (
+              <>
+                {displayCompanions.map((companion, index) => (
+                  <View key={companion.id}>
+                    {renderCompanionItem({ item: companion, index })}
+                    {index < displayCompanions.length - 1 && <View style={{ height: spacing[3] }} />}
+                  </View>
+                ))}
+                
+                {/* Show More/Less Button */}
+                {!searchQuery && filteredCompanions.length > MAX_DISPLAY_COUNT && (
+                  <TouchableOpacity
+                    style={styles.showMoreButton}
+                    onPress={() => setShowAll(!showAll)}
+                  >
+                    <Text style={[
+                      styles.showMoreText,
+                      { color: colors.purple[500] }
+                    ]}>
+                      {showAll
+                        ? language === 'ja' ? '閉じる' : 'Show Less'
+                        : language === 'ja' 
+                          ? `他${filteredCompanions.length - MAX_DISPLAY_COUNT}人を表示` 
+                          : `Show ${filteredCompanions.length - MAX_DISPLAY_COUNT} more`
+                      }
+                    </Text>
+                    <Ionicons
+                      name={showAll ? 'chevron-up' : 'chevron-down'}
+                      size={20}
+                      color={colors.purple[500]}
+                    />
+                  </TouchableOpacity>
+                )}
+                
+                {/* No results */}
+                {searchQuery && filteredCompanions.length === 0 && (
+                  <View style={styles.noResults}>
+                    <Text style={[styles.noResultsText, { color: theme.colors.text.secondary }]}>
+                      {language === 'ja' ? '該当する同行者が見つかりません' : 'No companions found'}
+                    </Text>
+                  </View>
+                )}
+              </>
+            );
+          })()}
         </View>
       ) : (
         <View style={styles.emptyState}>
@@ -430,7 +543,7 @@ export const CompanionManager: React.FC<CompanionManagerProps> = ({
               { color: theme.colors.text.secondary },
             ]}
           >
-            同行者がまだいません
+            {language === 'ja' ? '同行者がまだいません' : 'No companions yet'}
           </Text>
           <Text
             style={[
@@ -438,7 +551,7 @@ export const CompanionManager: React.FC<CompanionManagerProps> = ({
               { color: theme.colors.text.secondary },
             ]}
           >
-            一緒に行った友達や家族を追加しましょう
+            {language === 'ja' ? '一緒に行った友達や家族を追加しましょう' : 'Add friends or family members you went with'}
           </Text>
         </View>
       )}
@@ -575,5 +688,42 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
     paddingHorizontal: spacing[4],
+  },
+  searchContainer: {
+    marginBottom: spacing[4],
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    borderRadius: borderRadius.lg,
+    gap: spacing[2],
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+  },
+  clearButton: {
+    padding: spacing[1],
+  },
+  showMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing[3],
+    marginTop: spacing[3],
+    gap: spacing[2],
+  },
+  showMoreText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  noResults: {
+    alignItems: 'center',
+    paddingVertical: spacing[6],
+  },
+  noResultsText: {
+    fontSize: 16,
   },
 });

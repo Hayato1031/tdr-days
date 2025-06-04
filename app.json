@@ -1,29 +1,36 @@
 {
   "expo": {
-    "name": "TDR-days-new",
-    "slug": "TDR-days-new",
-    "version": "1.0.0",
+    "name": "TDR-Days",
+    "slug": "TDR-Days",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "icon": "./assets/AppIcons/appstore.png"
     },
     "android": {
+      "icon": "./assets/AppIcons/playstore.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/AppIcons/android/mipmap-xxxhdpi/ic_launcher.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "package": "com.hayatonakamura.TDRDays"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3722fcb4-a34c-4d31-ba52-723b382a2a4b"
+      }
+    },
+    "owner": "hayatonakamura"
   }
 }
