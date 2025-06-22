@@ -11,6 +11,7 @@ import {
   VisitStats,
   DateRange,
   ParkType,
+  PassType,
   TimelineAction,
   CreateInput,
   UpdateInput,
@@ -396,19 +397,32 @@ export function useVisits(): UseVisitsReturn {
       const landVisits = filteredVisits.filter(v => v.parkType === ParkType.LAND);
       const seaVisits = filteredVisits.filter(v => v.parkType === ParkType.SEA);
 
-      // Calculate average visit duration
+      // Calculate average visit duration based on pass type
       let totalDuration = 0;
-      let durationCount = 0;
-      filteredVisits.forEach(visit => {
-        if (visit.startTime && visit.endTime) {
-          const duration = new Date(visit.endTime).getTime() - new Date(visit.startTime).getTime();
-          totalDuration += duration;
-          durationCount++;
+      const durationCount = filteredVisits.length;
+      
+      // Get pass type duration mapping (in minutes)
+      const getPassTypeDuration = (passType?: PassType): number => {
+        switch (passType) {
+          case PassType.ONE_DAY:
+            return 12 * 60; // 12 hours
+          case PassType.EARLY_EVENING:
+            return 6 * 60; // 6 hours
+          case PassType.WEEKNIGHT:
+            return 4 * 60; // 4 hours
+          default:
+            return 12 * 60; // Default to 1-day for backward compatibility
         }
+      };
+      
+      filteredVisits.forEach(visit => {
+        const duration = getPassTypeDuration(visit.passType);
+        totalDuration += duration;
       });
+      
       const averageVisitDuration = durationCount > 0 
-        ? totalDuration / durationCount / (1000 * 60) // Convert to minutes
-        : undefined;
+        ? totalDuration / durationCount // Already in minutes
+        : 0; // Return 0 instead of undefined when no data
 
       // Calculate companion statistics
       const companionStats = new Map<string, number>();

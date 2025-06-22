@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BaseModel, DataMigration, AppMetadata } from '../types/models';
 
 // Storage key prefixes
-const STORAGE_KEYS = {
+export const STORAGE_KEYS = {
   VISITS: '@tdr_days:visits',
   ACTIONS: '@tdr_days:actions',
   COMPANIONS: '@tdr_days:companions',

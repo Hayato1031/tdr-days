@@ -28,7 +28,12 @@ import { HelpSupportModal } from '../components/HelpSupportModal';
 import { AboutAppModal } from '../components/AboutAppModal';
 import { TermsOfServiceModal } from '../components/TermsOfServiceModal';
 import { CompanionManagerModal } from '../components/CompanionManagerModal';
+import { ReviewRequestModal } from '../components/ReviewRequestModal';
+import { DataExportModal } from '../components/DataExportModal';
+import { DataImportModal } from '../components/DataImportModal';
 import { profileService, UserProfile } from '../services/profileService';
+import { reviewService } from '../services/reviewService';
+import { updateService } from '../services/updateService';
 import { useVisits } from '../hooks/useVisits';
 import { useActions } from '../hooks/useActions';
 import { resetDailyGreeting, getNewRandomGreeting, forceSetGreeting } from '../utils/greetings';
@@ -49,9 +54,12 @@ export const ProfileScreen = () => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [showCompanionManager, setShowCompanionManager] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showDataExport, setShowDataExport] = useState(false);
+  const [showDataImport, setShowDataImport] = useState(false);
   
   // Get actual data from hooks
-  const { visits, deleteAllVisits, companions, createCompanion, deleteCompanion, updateCompanion } = useVisits();
+  const { visits, deleteAllVisits, companions, createCompanion, deleteCompanion, updateCompanion, refreshData } = useVisits();
   const { actions, deleteAllActions } = useActions();
 
   useEffect(() => {
@@ -134,6 +142,37 @@ export const ProfileScreen = () => {
     }
   };
 
+  const handleForceReview = async () => {
+    // 直接レビューモーダルを表示
+    setShowReviewModal(true);
+  };
+
+  const handleTestUpdate = async () => {
+    try {
+      await updateService.checkForUpdates(true); // Force check
+      Alert.alert(
+        language === 'ja' ? 'アップデート確認' : 'Update Check',
+        language === 'ja' 
+          ? 'アップデート確認を実行しました（本番ビルドでのみ動作）'
+          : 'Update check executed (only works in production builds)'
+      );
+    } catch (error) {
+      Alert.alert(
+        language === 'ja' ? 'エラー' : 'Error',
+        language === 'ja' ? 'アップデート確認に失敗しました' : 'Failed to check for updates'
+      );
+    }
+  };
+
+  const handleDataImportComplete = async () => {
+    try {
+      // Refresh all data after import
+      await refreshData();
+    } catch (error) {
+      console.error('Failed to refresh data after import:', error);
+    }
+  };
+
   const menuItems = [
     { 
       icon: 'person', 
@@ -156,6 +195,18 @@ export const ProfileScreen = () => {
       action: handleLanguageToggle 
     },
     { 
+      icon: 'cloud-upload', 
+      label: language === 'ja' ? 'データをエクスポート' : 'Export Data', 
+      section: 'data', 
+      action: () => setShowDataExport(true) 
+    },
+    { 
+      icon: 'cloud-download', 
+      label: language === 'ja' ? 'データをインポート' : 'Import Data', 
+      section: 'data', 
+      action: () => setShowDataImport(true) 
+    },
+    { 
       icon: 'trash', 
       label: language === 'ja' ? '来園記録を全削除' : 'Delete All Visit Records', 
       section: 'data', 
@@ -168,6 +219,49 @@ export const ProfileScreen = () => {
       label: language === 'ja' ? '挨拶をリセット (テスト用)' : 'Reset Greeting (Test)', 
       section: 'data', 
       action: handleResetGreeting 
+    },
+    { 
+      icon: 'star', 
+      label: language === 'ja' ? 'レビュー依頼を表示 (開発用)' : 'Show Review Request (Dev)', 
+      section: 'data', 
+      action: handleForceReview 
+    },
+    { 
+      icon: 'stats-chart', 
+      label: language === 'ja' ? 'レビュー状態を確認 (開発用)' : 'Check Review Status (Dev)', 
+      section: 'data', 
+      action: async () => {
+        const status = await reviewService.getReviewStatus();
+        Alert.alert(
+          language === 'ja' ? 'レビュー状態' : 'Review Status',
+          language === 'ja' 
+            ? `レビュー済み: ${status.hasRated ? 'はい' : 'いいえ'}\nアプリ起動回数: ${status.appOpenCount}回\n前回の依頼: ${status.daysSinceLastRequest !== null ? `${status.daysSinceLastRequest}日前` : 'なし'}`
+            : `Has Rated: ${status.hasRated ? 'Yes' : 'No'}\nApp Opens: ${status.appOpenCount}\nLast Request: ${status.daysSinceLastRequest !== null ? `${status.daysSinceLastRequest} days ago` : 'Never'}`,
+          [
+            {
+              text: 'OK',
+              style: 'default',
+            },
+            {
+              text: language === 'ja' ? 'リセット' : 'Reset',
+              style: 'destructive',
+              onPress: async () => {
+                await reviewService.resetReviewData();
+                Alert.alert(
+                  language === 'ja' ? '完了' : 'Complete',
+                  language === 'ja' ? 'レビューデータをリセットしました' : 'Review data has been reset'
+                );
+              },
+            },
+          ]
+        );
+      }
+    },
+    { 
+      icon: 'cloud-download', 
+      label: language === 'ja' ? 'アップデート確認 (開発用)' : 'Check Updates (Dev)', 
+      section: 'data', 
+      action: handleTestUpdate 
     }] : []),
     { 
       icon: 'help-circle', 
@@ -444,6 +538,25 @@ export const ProfileScreen = () => {
         onCompanionUpdate={async (id, name) => {
           await updateCompanion(id, { name });
         }}
+      />
+      
+      {/* Review Request Modal */}
+      <ReviewRequestModal
+        visible={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+      />
+      
+      {/* Data Export Modal */}
+      <DataExportModal
+        visible={showDataExport}
+        onClose={() => setShowDataExport(false)}
+      />
+      
+      {/* Data Import Modal */}
+      <DataImportModal
+        visible={showDataImport}
+        onClose={() => setShowDataImport(false)}
+        onImportComplete={handleDataImportComplete}
       />
       
       <DrawerMenu

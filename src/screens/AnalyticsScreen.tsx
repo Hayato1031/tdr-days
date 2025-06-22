@@ -345,7 +345,7 @@ export const AnalyticsScreen = () => {
       },
       {
         title: t('analytics.avgVisitDuration') || (language === 'ja' ? '平均滞在時間' : 'Avg Duration'),
-        value: avgDuration ? `${Math.round(avgDuration / 60)}h` : 'N/A',
+        value: `${Math.round((avgDuration || 0) / 60)}h`,
         icon: 'time' as keyof typeof Ionicons.glyphMap,
         color: '#facc15',
         subtitle: t('analytics.hoursPerVisit') || (language === 'ja' ? '来園あたりの時間' : 'Hours per visit'),

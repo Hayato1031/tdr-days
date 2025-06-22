@@ -2,6 +2,9 @@ package com.hayatonakamura.TDRDays
 
 import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
+
+import androidx.core.view.WindowCompat
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -17,6 +20,9 @@ class MainActivity : ReactActivity() {
     // This is required for expo-splash-screen.
     setTheme(R.style.AppTheme);
     super.onCreate(null)
+    
+    // Enable edge-to-edge display for better compatibility
+    WindowCompat.setDecorFitsSystemWindows(window, false)
   }
 
   /**

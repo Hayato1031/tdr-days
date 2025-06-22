@@ -9,6 +9,13 @@ export enum ParkType {
   SEA = 'SEA',
 }
 
+// Pass type enum
+export enum PassType {
+  ONE_DAY = 'ONE_DAY',
+  EARLY_EVENING = 'EARLY_EVENING',
+  WEEKNIGHT = 'WEEKNIGHT',
+}
+
 // Action category enum
 export enum ActionCategory {
   ATTRACTION = 'ATTRACTION',
@@ -65,6 +72,7 @@ export interface Companion extends BaseModel {
 export interface Visit extends BaseModel {
   date: Date;
   parkType: ParkType;
+  passType?: PassType; // Optional for backward compatibility
   companionIds: string[]; // Array of companion IDs
   numberOfPeople?: number; // Optional total number of people
   notes?: string;
