@@ -343,6 +343,7 @@ export const ParkSelector: React.FC<ParkSelectorProps> = ({
     <View style={styles.container}>
       <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>
         {language === 'ja' ? 'パークを選択' : 'Select a Park'}
+        <Text style={{ color: colors.semantic.error.main }}> *</Text>
       </Text>
       <Text style={[styles.sectionSubtitle, { color: theme.colors.text.secondary }]}>
         {language === 'ja' ? '魔法の一日をどちらで始めますか？' : 'Where will you start your magical day?'}

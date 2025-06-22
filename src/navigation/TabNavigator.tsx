@@ -19,6 +19,7 @@ import { spacing, borderRadius } from '../styles/theme';
 // Import screens
 import { HomeScreen } from '../screens/HomeScreen';
 import { RecordScreen } from '../screens/RecordScreen';
+import { EditVisitScreen } from '../screens/EditVisitScreen';
 import { AnalyticsScreen } from '../screens/AnalyticsScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { VisitListScreen } from '../screens/VisitListScreen';
@@ -61,7 +62,9 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
       styles.tabBarContainer,
       {
         backgroundColor: isDark ? theme.colors.background.card : '#ffffff',
-        paddingBottom: insets.bottom,
+        paddingBottom: Platform.OS === 'android' 
+          ? Math.max(insets.bottom, 20) // Ensure minimum 20px padding on Android
+          : insets.bottom,
         borderTopColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
       }
     ]}>

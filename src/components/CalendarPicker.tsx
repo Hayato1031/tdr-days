@@ -169,6 +169,14 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
 
   return (
     <View style={styles.container}>
+      <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>
+        {language === 'ja' ? '日付を選択' : 'Select Date'}
+        <Text style={{ color: colors.semantic.error.main }}> *</Text>
+      </Text>
+      <Text style={[styles.sectionSubtitle, { color: theme.colors.text.secondary }]}>
+        {language === 'ja' ? 'いつ魔法の冒険に出かけますか？' : 'When will you embark on your magical adventure?'}
+      </Text>
+      
       {/* Date Selector Button */}
       <TouchableOpacity
         onPress={toggleCalendar}
@@ -327,6 +335,17 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginBottom: spacing[4],
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  sectionSubtitle: {
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: 'center',
   },
   dateButton: {
     borderRadius: borderRadius.xl,

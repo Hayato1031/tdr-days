@@ -10,6 +10,9 @@ import { AppNavigator } from './src/navigation/AppNavigator';
 import { ProfileSetupModal } from './src/components/ProfileSetupModal';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { profileService, UserProfile } from './src/services/profileService';
+import { reviewService } from './src/services/reviewService';
+import { updateService } from './src/services/updateService';
+import { ReviewRequestModal } from './src/components/ReviewRequestModal';
 import { colors } from './src/styles/colors';
 
 export default function App() {
@@ -17,6 +20,7 @@ export default function App() {
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [currentProfile, setCurrentProfile] = useState<UserProfile | null>(null);
   const [initError, setInitError] = useState<string | null>(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
@@ -32,12 +36,35 @@ export default function App() {
     // Monitor app state changes
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       console.log('App state changed to:', nextAppState);
+      if (nextAppState === 'active') {
+        // Check for review request when app becomes active
+        setTimeout(async () => {
+          const shouldShowReview = await reviewService.checkAndRequestReview();
+          if (shouldShowReview) {
+            setShowReviewModal(true);
+          }
+        }, 1000);
+      }
     };
 
     const subscription = AppState.addEventListener('change', handleAppStateChange);
 
     // Start profile check immediately
     checkProfile();
+    
+    // Increment app open count and check for review
+    reviewService.incrementAppOpenCount();
+    setTimeout(async () => {
+      const shouldShowReview = await reviewService.checkAndRequestReview();
+      if (shouldShowReview) {
+        setShowReviewModal(true);
+      }
+    }, 2000); // Delay review request to avoid interrupting initial app load
+    
+    // Check for app updates
+    setTimeout(() => {
+      updateService.checkForUpdates();
+    }, 3000); // Check for updates after app is fully loaded
 
     return () => {
       subscription.remove();
@@ -118,6 +145,10 @@ export default function App() {
                 <ProfileSetupModal
                   visible={showProfileSetup}
                   onComplete={handleProfileComplete}
+                />
+                <ReviewRequestModal
+                  visible={showReviewModal}
+                  onClose={() => setShowReviewModal(false)}
                 />
                 <StatusBar style="auto" />
               </View>

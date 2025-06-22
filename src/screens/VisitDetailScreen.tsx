@@ -623,14 +623,9 @@ export const VisitDetailScreen = () => {
             <TouchableOpacity
               style={[styles.editRecordButton, { backgroundColor: colors.purple[500] }]}
               onPress={() => {
-                // Navigate back to the main tab navigator first, then to Record screen
-                navigation.navigate('Main' as never, {
-                  screen: 'Record',
-                  params: {
-                    visitId: visitId,
-                    parkType: visit.parkType,
-                    date: new Date(visit.date).toISOString().split('T')[0]
-                  }
+                // Navigate to EditVisit screen
+                navigation.navigate('EditVisit' as never, {
+                  visitId: visitId,
                 } as never);
               }}
             >

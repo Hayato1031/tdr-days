@@ -30,7 +30,7 @@ import { ResponsiveContainer, ResponsiveSection } from '../components/layouts/Re
 import { SuccessModal } from '../components/SuccessModal';
 import { useVisits } from '../hooks/useVisits';
 import { useResponsive } from '../hooks/useResponsive';
-import { ParkType, CreateInput, Visit } from '../types/models';
+import { ParkType, PassType, CreateInput, Visit } from '../types/models';
 
 type WeatherType = 'SUNNY' | 'CLOUDY' | 'RAINY' | 'SNOWY';
 
@@ -46,10 +46,39 @@ const getWeatherOptions = (t: any): Array<{
   { type: 'SNOWY', label: t('record.snowy'), icon: 'snow', color: '#64b5f6' },
 ];
 
+const getPassTypeOptions = (language: string): Array<{
+  type: PassType;
+  label: string;
+  description: string;
+  icon: string;
+  color: string;
+}> => [
+  { 
+    type: PassType.ONE_DAY, 
+    label: language === 'ja' ? '1デー' : '1-Day Pass', 
+    description: language === 'ja' ? '朝から一日中' : 'All day from morning',
+    icon: 'sunny-outline', 
+    color: colors.blue[500] 
+  },
+  { 
+    type: PassType.EARLY_EVENING, 
+    label: language === 'ja' ? 'アーリーイブニング' : 'Early Evening', 
+    description: language === 'ja' ? '15:00から' : 'From 3:00 PM',
+    icon: 'partly-sunny-outline', 
+    color: colors.orange[500] 
+  },
+  { 
+    type: PassType.WEEKNIGHT, 
+    label: language === 'ja' ? 'ウィークナイト' : 'Weeknight', 
+    description: language === 'ja' ? '17:00から' : 'From 5:00 PM',
+    icon: 'moon-outline', 
+    color: colors.purple[500] 
+  },
+];
+
 interface RecordScreenParams {
   parkType?: ParkType;
   date?: string;
-  visitId?: string;
 }
 
 export const RecordScreen = () => {
@@ -87,16 +116,10 @@ export const RecordScreen = () => {
     isLoading,
   } = useVisits();
 
-  // Form state
-  const [selectedDate, setSelectedDate] = useState<string>(() => {
-    console.log('RecordScreen params:', params);
-    // Check for initialDate parameter as well as date
-    return params?.date || (params as any)?.initialDate || '';
-  });
-  const [selectedPark, setSelectedPark] = useState<ParkType | undefined>(() => {
-    console.log('RecordScreen parkType param:', params?.parkType);
-    return params?.parkType;
-  });
+  // Form state - Initialize empty for new records only
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedPark, setSelectedPark] = useState<ParkType | undefined>();
+  const [selectedPassType, setSelectedPassType] = useState<PassType | undefined>();
   const [selectedCompanionIds, setSelectedCompanionIds] = useState<string[]>([]);
   const [selectedWeather, setSelectedWeather] = useState<WeatherType | undefined>();
   const [notes, setNotes] = useState('');
@@ -109,6 +132,13 @@ export const RecordScreen = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   const companionTitleRef = useRef<View>(null);
 
+  // Initialize form state from params only once
+  useEffect(() => {
+    console.log('RecordScreen initialized with params:', params);
+    setSelectedDate(params?.date || '');
+    setSelectedPark(params?.parkType);
+  }, []); // Run only once on mount
+
   // Handle params changes (in case user navigates to this screen multiple times with different params)
   useEffect(() => {
     if (params?.date && params.date !== selectedDate) {
@@ -120,13 +150,12 @@ export const RecordScreen = () => {
       setSelectedPark(params.parkType);
     }
   }, [params]);
-  const [editingVisit, setEditingVisit] = useState<Visit | null>(null);
 
   // Animation refs
   const saveButtonScale = useRef(new Animated.Value(1)).current;
 
   // Validation
-  const isFormValid = selectedDate && selectedPark;
+  const isFormValid = selectedDate && selectedPark && selectedPassType;
 
   const handleCompanionToggle = (companionId: string) => {
     setSelectedCompanionIds(prev => 
@@ -138,7 +167,7 @@ export const RecordScreen = () => {
 
   const handleCompanionCreate = async (name: string) => {
     try {
-      const newCompanion = await createCompanion({ name });
+      const newCompanion = await createCompanion({ name, visitIds: [] });
       setSelectedCompanionIds(prev => [...prev, newCompanion.id]);
     } catch (error) {
       throw error;
@@ -158,36 +187,37 @@ export const RecordScreen = () => {
     setSelectedWeather(prev => prev === weather ? undefined : weather);
   };
 
-  // Load visit data for editing
+  // Reset form state when screen is focused
   useEffect(() => {
-    const loadEditingVisit = async () => {
-      if (params?.visitId) {
-        try {
-          const visit = await getVisit(params.visitId);
-          if (visit) {
-            setEditingVisit(visit);
-            setSelectedDate(new Date(visit.date).toISOString().split('T')[0]);
-            setSelectedPark(visit.parkType);
-            setSelectedCompanionIds(visit.companionIds);
-            setSelectedWeather(visit.weather);
-            setNotes(visit.notes || '');
-          }
-        } catch (error) {
-          Alert.alert(
-            t('record.error'), 
-            t('record.errorMessage')
-          );
-          navigation.goBack();
-        }
-      }
-    };
+    const unsubscribe = navigation.addListener('focus', () => {
+      // Reset form state for clean new record creation
+      console.log('RecordScreen focused, resetting form state');
+      setSelectedDate(params?.date || '');
+      setSelectedPark(params?.parkType);
+      setSelectedPassType(undefined);
+      setSelectedCompanionIds([]);
+      setSelectedWeather(undefined);
+      setNotes('');
+      setIsSaving(false);
+      setShowSuccessModal(false);
+      setSavedVisitId(null);
+      setShowAdvanced(false);
+      // Reset animations
+      advancedAnimValue.setValue(0);
+      saveButtonScale.setValue(1);
+    });
 
-    loadEditingVisit();
-  }, [params?.visitId]);
+    return unsubscribe;
+  }, [navigation, params, advancedAnimValue, saveButtonScale]);
 
   const handleSave = async () => {
     if (!isFormValid) {
-      Alert.alert(t('record.incompleteForm'), t('record.selectDateAndPark'));
+      Alert.alert(
+        t('record.incompleteForm'), 
+        language === 'ja' 
+          ? '日付、パーク、パスタイプを選択してください' 
+          : 'Please select date, park, and pass type'
+      );
       return;
     }
 
@@ -211,29 +241,22 @@ export const RecordScreen = () => {
       const visitData = {
         date: new Date(selectedDate),
         parkType: selectedPark!,
+        passType: selectedPassType!,
         companionIds: selectedCompanionIds,
         weather: selectedWeather,
         notes: notes.trim() || undefined,
       };
 
-      let resultVisit: Visit;
+      // Create new visit (RecordScreen is only for new visits now)
+      const resultVisit = await createVisit(visitData as CreateInput<Visit>);
       
-      if (editingVisit) {
-        // Update existing visit
-        resultVisit = await updateVisit(editingVisit.id, visitData);
-      } else {
-        // Create new visit
-        resultVisit = await createVisit(visitData as CreateInput<Visit>);
-      }
-      
-      // Reset form only for new visits
-      if (!editingVisit) {
-        setSelectedDate('');
-        setSelectedPark(undefined);
-        setSelectedCompanionIds([]);
-        setSelectedWeather(undefined);
-        setNotes('');
-      }
+      // Reset form for new visits
+      setSelectedDate('');
+      setSelectedPark(undefined);
+      setSelectedPassType(undefined);
+      setSelectedCompanionIds([]);
+      setSelectedWeather(undefined);
+      setNotes('');
 
       // Show success modal
       setSavedVisitId(resultVisit.id);
@@ -249,7 +272,7 @@ export const RecordScreen = () => {
     setShowSuccessModal(false);
     if (savedVisitId) {
       // Navigate to the specific visit detail page
-      navigation.navigate('VisitDetail' as never, { visitId: savedVisitId } as never);
+      (navigation as any).navigate('VisitDetail', { visitId: savedVisitId });
     }
   };
 
@@ -271,7 +294,7 @@ export const RecordScreen = () => {
       if (scrollViewRef.current && companionTitleRef.current) {
         // Get the layout of the companion title relative to the ScrollView
         companionTitleRef.current.measureLayout(
-          scrollViewRef.current.getInnerViewRef(),
+          scrollViewRef.current.getInnerViewNode(),
           (x, y, width, height) => {
             // Scroll to position the companion title near the top of the visible area
             const headerHeight = 100; // Account for header and some padding
@@ -298,9 +321,8 @@ export const RecordScreen = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <Header 
-          title={editingVisit ? t('record.editVisit') : t('nav.record')} 
-          showBackButton={editingVisit ? true : false}
-          onBackPress={editingVisit ? () => navigation.goBack() : undefined}
+          title={t('nav.record')} 
+          showBackButton={false}
           onMenuOpen={() => setMenuVisible(true)}
         />
         
@@ -380,6 +402,87 @@ export const RecordScreen = () => {
               selectedPark={selectedPark}
               onParkSelect={setSelectedPark}
             />
+          </View>
+
+          {/* Pass Type Selector */}
+          <View style={[styles.section, { marginBottom: safeRSpacing(24) }]}>
+            <Text style={[
+              styles.sectionTitle, 
+              { 
+                color: theme.colors.text.primary,
+                fontSize: safeRFontSize(18),
+                marginBottom: safeRSpacing(12),
+              }
+            ]}>
+              {language === 'ja' ? 'パスタイプ' : 'Pass Type'} 
+              <Text style={{ color: colors.semantic.error.main }}> *</Text>
+            </Text>
+            <View style={[
+              styles.passTypeContainer,
+              {
+                gap: safeRSpacing(12),
+              }
+            ]}>
+              {getPassTypeOptions(language).map((passOption) => {
+                const isSelected = selectedPassType === passOption.type;
+                return (
+                  <TouchableOpacity
+                    key={passOption.type}
+                    onPress={() => setSelectedPassType(passOption.type)}
+                    style={[
+                      styles.passTypeButton,
+                      {
+                        backgroundColor: isDark
+                          ? theme.colors.background.secondary
+                          : theme.colors.background.elevated,
+                        borderColor: isSelected ? passOption.color : colors.utility.borderLight,
+                        borderWidth: isSelected ? 2 : 1,
+                        borderRadius: safeRSpacing(12),
+                        padding: safeRSpacing(16),
+                      },
+                    ]}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.passTypeContent}>
+                      <View style={[
+                        styles.passTypeIcon,
+                        {
+                          backgroundColor: `${passOption.color}15`,
+                          marginRight: safeRSpacing(12),
+                        }
+                      ]}>
+                        <Ionicons 
+                          name={passOption.icon as any} 
+                          size={24} 
+                          color={passOption.color} 
+                        />
+                      </View>
+                      <View style={styles.passTypeText}>
+                        <Text style={[
+                          styles.passTypeLabel,
+                          { 
+                            color: isSelected ? passOption.color : theme.colors.text.primary,
+                            fontSize: safeRFontSize(16),
+                            fontWeight: isSelected ? '600' : '500',
+                          }
+                        ]}>
+                          {passOption.label}
+                        </Text>
+                        <Text style={[
+                          styles.passTypeDescription,
+                          { 
+                            color: theme.colors.text.secondary,
+                            fontSize: safeRFontSize(14),
+                          }
+                        ]}>
+                          {passOption.description}
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
 
           {/* Companion Manager */}
@@ -795,5 +898,40 @@ const styles = StyleSheet.create({
   },
   loadingSpinner: {
     // Add rotation animation here if needed
+  },
+  passTypeContainer: {
+    gap: 12,
+  },
+  passTypeButton: {
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  passTypeContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  passTypeIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  passTypeText: {
+    flex: 1,
+  },
+  passTypeLabel: {
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  passTypeDescription: {
+    lineHeight: 18,
   },
 });

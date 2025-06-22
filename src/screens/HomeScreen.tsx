@@ -462,7 +462,8 @@ export const HomeScreen = () => {
 
               {/* Enhanced Stats Cards with Animations - 2x2 Grid */}
               <View style={[styles.statsCardsGrid, {
-                paddingHorizontal: 16,
+                paddingHorizontal: 20,
+                marginTop: 8,
               }]}>
                 <View style={styles.statsCardContainer}>
                   <MagicCard
@@ -670,7 +671,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   heroSection: {
-    paddingTop: 20,
+    paddingTop: 0,
     marginBottom: 32,
   },
   heroGradient: {
@@ -689,19 +690,21 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   heroContainer: {
-    minHeight: 280,
-    paddingHorizontal: 16,
-    paddingVertical: 32,
+    minHeight: 340,
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 40,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
   welcomeContainer: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 36,
+    paddingVertical: 8,
   },
   greetingContainer: {
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   welcomeText: {
     fontSize: 16,
@@ -718,8 +721,9 @@ const styles = StyleSheet.create({
   appTitle: {
     fontSize: 32,
     fontWeight: '700',
-    marginBottom: 8,
+    marginBottom: 16,
     textAlign: 'center',
+    lineHeight: 40,
   },
   appTitleAccent: {
     fontSize: 28,

@@ -1,8 +1,8 @@
 // App constants - single source of truth for app metadata
 export const APP_CONFIG = {
   // Version info - update this when releasing new versions
-  VERSION: '1.1.0',
-  VERSION_CODE: 10100,
+  VERSION: '1.2.0',
+  VERSION_CODE: 10200,
   
   // App metadata
   NAME: 'TDR Days',
